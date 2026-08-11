@@ -73,7 +73,7 @@ async def test_airflow_tools_registration():
     mock_mcp = MagicMock()
     AirflowTools(mock_mcp)
 
-    assert mock_mcp.tool.call_count == 15
+    assert mock_mcp.tool.call_count == 16
 
     call_args_list = mock_mcp.tool.call_args_list
     tool_names = [call_args[1]['name'] for call_args in call_args_list]
@@ -85,6 +85,7 @@ async def test_airflow_tools_registration():
     assert 'get-dag-run' in tool_names
     assert 'list-task-instances' in tool_names
     assert 'get-task-instance' in tool_names
+    assert 'list-mapped-task-instances' in tool_names
     assert 'get-task-logs' in tool_names
     assert 'list-connections' in tool_names
     assert 'list-variables' in tool_names
@@ -100,11 +101,12 @@ async def test_airflow_tools_registration_with_write():
     mock_mcp = MagicMock()
     AirflowTools(mock_mcp, allow_write=True)
 
-    assert mock_mcp.tool.call_count == 15
+    assert mock_mcp.tool.call_count == 16
 
     call_args_list = mock_mcp.tool.call_args_list
     tool_names = [call_args[1]['name'] for call_args in call_args_list]
 
+    assert 'list-mapped-task-instances' in tool_names
     assert 'trigger-dag-run' in tool_names
     assert 'pause-dag' in tool_names
     assert 'unpause-dag' in tool_names
@@ -117,4 +119,4 @@ async def test_total_tool_count():
     EnvironmentTools(mock_mcp)
     AirflowTools(mock_mcp)
 
-    assert mock_mcp.tool.call_count == 20
+    assert mock_mcp.tool.call_count == 21

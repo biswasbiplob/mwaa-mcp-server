@@ -60,6 +60,14 @@ direct AWS CLI or Airflow CLI commands.
 3. List task instances: `list-task-instances(environment_name='my-env', dag_id='my-dag', dag_run_id='...')`
 4. Get task logs: `get-task-logs(environment_name='my-env', dag_id='my-dag', dag_run_id='...', task_id='...', try_number=1)`
 
+### Investigating a Failed Mapped Task
+For DAGs using dynamic task mapping (expand()), each mapped task has multiple instances identified
+by map_index. Use this workflow to investigate failures in specific mapped instances:
+1. List task instances: `list-task-instances(...)` — identify mapped tasks (entries with map_index >= 0)
+2. List mapped instances: `list-mapped-task-instances(..., task_id='my-task')` — see all map indices and states
+3. Get specific instance details: `get-task-instance(..., task_id='my-task', map_index=5)`
+4. Get mapped task logs: `get-task-logs(..., task_id='my-task', map_index=5, try_number=1)`
+
 ### Monitoring Environment Health
 1. List environments: `list-environments()`
 2. Get environment details: `get-environment(environment_name='my-env')`

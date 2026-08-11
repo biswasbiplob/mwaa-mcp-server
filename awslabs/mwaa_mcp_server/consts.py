@@ -42,6 +42,12 @@ DAG_RUN_PATH = '/dags/{dag_id}/dagRuns/{dag_run_id}'
 # Task instance endpoints
 TASK_INSTANCES_PATH = '/dags/{dag_id}/dagRuns/{dag_run_id}/taskInstances'
 TASK_INSTANCE_PATH = '/dags/{dag_id}/dagRuns/{dag_run_id}/taskInstances/{task_id}'
+MAPPED_TASK_INSTANCE_PATH = (
+    '/dags/{dag_id}/dagRuns/{dag_run_id}/taskInstances/{task_id}/{map_index}'
+)
+LIST_MAPPED_TASK_INSTANCES_PATH = (
+    '/dags/{dag_id}/dagRuns/{dag_run_id}/taskInstances/{task_id}/listMapped'
+)
 TASK_LOGS_PATH = '/dags/{dag_id}/dagRuns/{dag_run_id}/taskInstances/{task_id}/logs/{try_number}'
 CLEAR_TASK_INSTANCES_PATH = '/dags/{dag_id}/clearTaskInstances'
 
