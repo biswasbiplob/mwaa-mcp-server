@@ -1,2 +1,6 @@
-awslabs.mwaa-mcp-server
-Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+mwaa-mcp-server
+Copyright Biplob Biswas
+
+This project contains build scaffolding derived from the awslabs/mcp
+project (https://github.com/awslabs/mcp), Copyright Amazon.com, Inc.
+or its affiliates, licensed under the Apache License, Version 2.0.

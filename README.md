@@ -1,6 +1,6 @@
-# awslabs.mwaa-mcp-server
+# mwaa-mcp-server
 
-An AWS Labs Model Context Protocol (MCP) server for Amazon Managed Workflows for Apache Airflow (MWAA).
+A Model Context Protocol (MCP) server for Amazon Managed Workflows for Apache Airflow (MWAA).
 
 ## Features
 
@@ -23,20 +23,20 @@ An AWS Labs Model Context Protocol (MCP) server for Amazon Managed Workflows for
 ### Using uvx (recommended)
 
 ```bash
-uvx awslabs.mwaa-mcp-server
+uvx --from git+https://github.com/biswasbiplob/mwaa-mcp-server mwaa-mcp-server
 ```
 
 ### Using pip
 
 ```bash
-pip install awslabs.mwaa-mcp-server
+pip install git+https://github.com/biswasbiplob/mwaa-mcp-server
 ```
 
 ### Using Docker
 
 ```bash
-docker build -t awslabs.mwaa-mcp-server .
-docker run -it awslabs.mwaa-mcp-server
+docker build -t mwaa-mcp-server .
+docker run -it mwaa-mcp-server
 ```
 
 ## Configuration
@@ -63,9 +63,9 @@ Add to your Claude Desktop MCP configuration:
 ```json
 {
   "mcpServers": {
-    "awslabs.mwaa-mcp-server": {
+    "mwaa-mcp-server": {
       "command": "uvx",
-      "args": ["awslabs.mwaa-mcp-server"],
+      "args": ["--from", "git+https://github.com/biswasbiplob/mwaa-mcp-server", "mwaa-mcp-server"],
       "env": {
         "AWS_REGION": "us-east-1",
         "AWS_PROFILE": "my-profile",
@@ -82,9 +82,9 @@ For write access:
 ```json
 {
   "mcpServers": {
-    "awslabs.mwaa-mcp-server": {
+    "mwaa-mcp-server": {
       "command": "uvx",
-      "args": ["awslabs.mwaa-mcp-server", "--allow-write"],
+      "args": ["--from", "git+https://github.com/biswasbiplob/mwaa-mcp-server", "mwaa-mcp-server", "--allow-write"],
       "env": {
         "AWS_REGION": "us-east-1",
         "AWS_PROFILE": "my-profile",
@@ -118,7 +118,8 @@ For write access:
 | `list-dag-runs` | List DAG runs for a specific DAG | Read |
 | `get-dag-run` | Get details of a specific DAG run | Read |
 | `list-task-instances` | List task instances for a DAG run | Read |
-| `get-task-instance` | Get details of a specific task instance | Read |
+| `get-task-instance` | Get details of a specific task instance (supports `map_index` for mapped tasks) | Read |
+| `list-mapped-task-instances` | List all mapped instances of a dynamically mapped task | Read |
 | `get-task-logs` | Get logs for a task instance try (supports pagination for large logs) | Read |
 | `list-connections` | List Airflow connections (passwords redacted) | Read |
 | `list-variables` | List Airflow variables (sensitive values redacted) | Read |
