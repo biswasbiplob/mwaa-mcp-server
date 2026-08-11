@@ -11,6 +11,7 @@ A Model Context Protocol (MCP) server for Amazon Managed Workflows for Apache Ai
 - **Error Diagnostics**: Retrieve DAG import/parsing errors
 - **Secure by Design**: All Airflow API operations go through AWS `invoke_rest_api` — no CLI or web tokens are exposed
 - **Read-only by Default**: Write operations require the `--allow-write` flag
+- **Airflow 2.x and 3.x**: The server detects each environment's Airflow major version and translates API differences (e.g. `execution_date` vs `logical_date`) transparently — tools keep one stable interface
 
 ## Prerequisites
 
@@ -114,7 +115,7 @@ For write access:
 |------|-------------|--------|
 | `list-dags` | List all DAGs in an environment | Read |
 | `get-dag` | Get details of a specific DAG | Read |
-| `get-dag-source` | Get the source code of a DAG file | Read |
+| `get-dag-source` | Get the source code of a DAG by DAG ID | Read |
 | `list-dag-runs` | List DAG runs for a specific DAG | Read |
 | `get-dag-run` | Get details of a specific DAG run | Read |
 | `list-task-instances` | List task instances for a DAG run | Read |
