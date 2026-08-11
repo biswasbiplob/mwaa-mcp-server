@@ -119,7 +119,7 @@ For write access:
 | `get-dag-run` | Get details of a specific DAG run | Read |
 | `list-task-instances` | List task instances for a DAG run | Read |
 | `get-task-instance` | Get details of a specific task instance | Read |
-| `get-task-logs` | Get logs for a task instance try | Read |
+| `get-task-logs` | Get logs for a task instance try (supports pagination for large logs) | Read |
 | `list-connections` | List Airflow connections (passwords redacted) | Read |
 | `list-variables` | List Airflow variables (sensitive values redacted) | Read |
 | `get-import-errors` | Get DAG import/parsing errors | Read |
