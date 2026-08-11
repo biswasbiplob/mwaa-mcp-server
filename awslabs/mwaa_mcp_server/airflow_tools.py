@@ -30,6 +30,7 @@ from awslabs.mwaa_mcp_server.consts import (
     ENV_MWAA_ENVIRONMENT,
     ENVIRONMENT_NAME_PATTERN,
     IMPORT_ERRORS_PATH,
+    LIST_MAPPED_TASK_INSTANCES_PATH,
     TASK_INSTANCE_PATH,
     TASK_INSTANCES_PATH,
     TASK_LOGS_PATH,
@@ -69,6 +70,7 @@ class AirflowTools:
         self.mcp.tool(name='get-dag-run')(self.get_dag_run)
         self.mcp.tool(name='list-task-instances')(self.list_task_instances)
         self.mcp.tool(name='get-task-instance')(self.get_task_instance)
+        self.mcp.tool(name='list-mapped-task-instances')(self.list_mapped_task_instances)
         self.mcp.tool(name='get-task-logs')(self.get_task_logs)
         self.mcp.tool(name='list-connections')(self.list_connections)
         self.mcp.tool(name='list-variables')(self.list_variables)
@@ -921,6 +923,124 @@ class AirflowTools:
             )
         except BotoCoreError as e:
             error_message = f'AWS SDK error getting task instance: {e}'
+            logger.error(error_message)
+            await ctx.error(error_message)
+            return CallToolResult(
+                isError=True,
+                content=[TextContent(type='text', text=error_message)],
+            )
+
+    async def list_mapped_task_instances(
+        self,
+        ctx: Context,
+        environment_name: Optional[str] = Field(
+            default=None,
+            description='Name of the MWAA environment. If omitted and only one environment exists, it is used automatically.',
+        ),
+        dag_id: str = Field(
+            ...,
+            description='The DAG ID.',
+        ),
+        dag_run_id: str = Field(
+            ...,
+            description='The DAG run ID.',
+        ),
+        task_id: str = Field(
+            ...,
+            description='The mapped task ID.',
+        ),
+        limit: Optional[int] = Field(
+            default=None,
+            description='Maximum number of mapped instances to return.',
+        ),
+        offset: Optional[int] = Field(
+            default=None,
+            description='Number of mapped instances to skip for pagination.',
+        ),
+        region: Optional[str] = Field(
+            default=None,
+            description='AWS region override.',
+        ),
+        profile_name: Optional[str] = Field(
+            default=None,
+            description='AWS CLI profile name override.',
+        ),
+    ) -> CallToolResult:
+        """List all mapped instances for a dynamically mapped task.
+
+        Returns all mapped task instances for a task that uses Airflow's dynamic
+        task mapping (expand()). Each instance includes its map_index, state,
+        start/end times, and execution details.
+
+        Use this to discover which map indices exist and their states before
+        fetching logs with get-task-logs or details with get-task-instance.
+
+        Args:
+            ctx: The MCP context.
+            environment_name: Name of the MWAA environment.
+            dag_id: The DAG identifier.
+            dag_run_id: The DAG run identifier.
+            task_id: The mapped task identifier.
+            limit: Maximum number of mapped instances to return.
+            offset: Number of mapped instances to skip for pagination.
+            region: AWS region override.
+            profile_name: AWS CLI profile name override.
+
+        Returns:
+            CallToolResult with the list of mapped task instances.
+        """
+        try:
+            environment_name = self._resolve_environment(environment_name, region, profile_name)
+            self._sanitize_path_param(dag_id, 'dag_id')
+            self._sanitize_path_param(dag_run_id, 'dag_run_id')
+            self._sanitize_path_param(task_id, 'task_id')
+            path = LIST_MAPPED_TASK_INSTANCES_PATH.format(
+                dag_id=dag_id, dag_run_id=dag_run_id, task_id=task_id
+            )
+
+            query_params: dict = {}
+            if limit is not None:
+                query_params['limit'] = str(limit)
+            if offset is not None:
+                query_params['offset'] = str(offset)
+
+            response = await self._invoke_airflow_api(
+                environment_name=environment_name,
+                method='GET',
+                path=path,
+                query_parameters=query_params or None,
+                region=region,
+                profile_name=profile_name,
+            )
+
+            return CallToolResult(
+                isError=False,
+                content=[
+                    TextContent(
+                        type='text',
+                        text=f'Mapped task instances for: {dag_id}/{dag_run_id}/{task_id}',
+                    ),
+                    TextContent(type='text', text=json.dumps(response, default=str)),
+                ],
+            )
+        except (ValueError, PermissionError) as e:
+            error_message = str(e)
+            logger.error(error_message)
+            await ctx.error(error_message)
+            return CallToolResult(
+                isError=True,
+                content=[TextContent(type='text', text=error_message)],
+            )
+        except ClientError as e:
+            error_message = f'AWS API error listing mapped task instances: {e}'
+            logger.error(error_message)
+            await ctx.error(error_message)
+            return CallToolResult(
+                isError=True,
+                content=[TextContent(type='text', text=error_message)],
+            )
+        except BotoCoreError as e:
+            error_message = f'AWS SDK error listing mapped task instances: {e}'
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(

@@ -391,6 +391,139 @@ class TestGetTaskInstance:
         assert 'path traversal' in result.content[0].text
 
 
+class TestListMappedTaskInstances:
+    @pytest.mark.asyncio
+    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    async def test_list_mapped_task_instances_success(
+        self, mock_get_client, handler_readonly, mock_ctx
+    ):
+        mock_client = MagicMock()
+        mock_client.invoke_rest_api.return_value = {
+            'RestApiResponse': {
+                'task_instances': [
+                    {'task_id': 'my_task', 'map_index': 0, 'state': 'success'},
+                    {'task_id': 'my_task', 'map_index': 1, 'state': 'failed'},
+                    {'task_id': 'my_task', 'map_index': 2, 'state': 'success'},
+                ],
+                'total_entries': 3,
+            },
+        }
+        mock_get_client.return_value = mock_client
+
+        result = await handler_readonly.list_mapped_task_instances(
+            mock_ctx,
+            environment_name='test-env',
+            dag_id='my_dag',
+            dag_run_id='run-1',
+            task_id='my_task',
+            limit=None,
+            offset=None,
+        )
+
+        assert not result.isError
+        assert 'Mapped task instances for' in result.content[0].text
+        data = json.loads(result.content[1].text)
+        assert len(data['task_instances']) == 3
+        # Verify path
+        call_kwargs = mock_client.invoke_rest_api.call_args[1]
+        assert call_kwargs['Path'].endswith('/taskInstances/my_task/listMapped')
+
+    @pytest.mark.asyncio
+    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    async def test_list_mapped_task_instances_with_pagination(
+        self, mock_get_client, handler_readonly, mock_ctx
+    ):
+        mock_client = MagicMock()
+        mock_client.invoke_rest_api.return_value = {
+            'RestApiResponse': {
+                'task_instances': [
+                    {'task_id': 'my_task', 'map_index': 10, 'state': 'success'},
+                ],
+                'total_entries': 50,
+            },
+        }
+        mock_get_client.return_value = mock_client
+
+        result = await handler_readonly.list_mapped_task_instances(
+            mock_ctx,
+            environment_name='test-env',
+            dag_id='my_dag',
+            dag_run_id='run-1',
+            task_id='my_task',
+            limit=10,
+            offset=10,
+        )
+
+        assert not result.isError
+        call_kwargs = mock_client.invoke_rest_api.call_args[1]
+        assert call_kwargs['QueryParameters'] == {
+            'limit': '10',
+            'offset': '10',
+        }
+
+    @pytest.mark.asyncio
+    async def test_list_mapped_task_instances_path_traversal(self, handler_readonly, mock_ctx):
+        result = await handler_readonly.list_mapped_task_instances(
+            mock_ctx,
+            environment_name='test-env',
+            dag_id='my_dag',
+            dag_run_id='run-1',
+            task_id='../../etc/passwd',
+        )
+
+        assert result.isError
+        assert 'path traversal' in result.content[0].text
+
+    @pytest.mark.asyncio
+    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    async def test_list_mapped_task_instances_client_error(
+        self, mock_get_client, handler_readonly, mock_ctx
+    ):
+        mock_client = MagicMock()
+        mock_client.invoke_rest_api.side_effect = ClientError(
+            {'Error': {'Code': 'RestApiClientException', 'Message': 'Not found'}},
+            'InvokeRestApi',
+        )
+        mock_get_client.return_value = mock_client
+
+        result = await handler_readonly.list_mapped_task_instances(
+            mock_ctx,
+            environment_name='test-env',
+            dag_id='my_dag',
+            dag_run_id='run-1',
+            task_id='my_task',
+            limit=None,
+            offset=None,
+        )
+
+        assert result.isError
+        assert 'AWS API error' in result.content[0].text
+
+    @pytest.mark.asyncio
+    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    async def test_list_mapped_task_instances_botocore_error(
+        self, mock_get_client, handler_readonly, mock_ctx
+    ):
+        from botocore.exceptions import BotoCoreError
+
+        mock_client = MagicMock()
+        mock_client.invoke_rest_api.side_effect = BotoCoreError()
+        mock_get_client.return_value = mock_client
+
+        result = await handler_readonly.list_mapped_task_instances(
+            mock_ctx,
+            environment_name='test-env',
+            dag_id='my_dag',
+            dag_run_id='run-1',
+            task_id='my_task',
+            limit=None,
+            offset=None,
+        )
+
+        assert result.isError
+        assert 'AWS SDK error' in result.content[0].text
+
+
 class TestGetTaskLogs:
     @pytest.mark.asyncio
     @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
