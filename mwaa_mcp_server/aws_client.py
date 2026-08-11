@@ -1,9 +1,9 @@
 """AWS client factory for the MWAA MCP Server."""
 
-from mwaa_mcp_server import MCP_SERVER_VERSION
-from mwaa_mcp_server.consts import DEFAULT_REGION, ENV_AWS_PROFILE, ENV_AWS_REGION
 from boto3 import Session
 from botocore.config import Config
+from mwaa_mcp_server import MCP_SERVER_VERSION
+from mwaa_mcp_server.consts import DEFAULT_REGION, ENV_AWS_PROFILE, ENV_AWS_REGION
 from os import getenv
 
 

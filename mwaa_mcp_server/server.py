@@ -11,10 +11,10 @@ Environment Variables:
 """
 
 import argparse
-from mwaa_mcp_server.airflow_tools import AirflowTools
-from mwaa_mcp_server.environment_tools import EnvironmentTools
 from loguru import logger
 from mcp.server import MCPServer
+from mwaa_mcp_server.airflow_tools import AirflowTools
+from mwaa_mcp_server.environment_tools import EnvironmentTools
 
 
 SERVER_INSTRUCTIONS = """

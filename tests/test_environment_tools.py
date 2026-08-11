@@ -3,8 +3,8 @@
 
 import json
 import pytest
-from mwaa_mcp_server.environment_tools import EnvironmentTools
 from botocore.exceptions import ClientError
+from mwaa_mcp_server.environment_tools import EnvironmentTools
 from unittest.mock import MagicMock, patch
 
 
