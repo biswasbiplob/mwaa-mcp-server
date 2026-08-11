@@ -20,6 +20,7 @@ ENVIRONMENT_NAME_PATTERN = r'^[a-zA-Z][0-9a-zA-Z\-_]{0,79}$'
 DAGS_PATH = '/dags'
 DAG_PATH = '/dags/{dag_id}'
 DAG_SOURCE_PATH = '/dagSources/{file_token}'
+DAG_SOURCE_PATH_V3 = '/dagSources/{dag_id}'
 
 # DAG run endpoints
 DAG_RUNS_PATH = '/dags/{dag_id}/dagRuns'

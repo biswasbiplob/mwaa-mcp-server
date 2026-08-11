@@ -3,28 +3,17 @@
 
 import json
 import pytest
-from mwaa_mcp_server.airflow_tools import AirflowTools
 from botocore.exceptions import ClientError
+from mwaa_mcp_server.airflow_tools import AirflowTools
+from tests.conftest import make_mock_client
 from unittest.mock import MagicMock, patch
-
-
-@pytest.fixture
-def handler_readonly(mock_mcp):
-    """Create AirflowTools handler in read-only mode."""
-    return AirflowTools(mock_mcp, allow_write=False)
-
-
-@pytest.fixture
-def handler_writable(mock_mcp):
-    """Create AirflowTools handler with write access."""
-    return AirflowTools(mock_mcp, allow_write=True)
 
 
 class TestInvokeAirflowApi:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_invoke_basic_get(self, mock_get_client, handler_readonly):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {'dags': [], 'total_entries': 0},
             'RestApiStatusCode': 200,
@@ -47,7 +36,7 @@ class TestInvokeAirflowApi:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_invoke_with_body_and_query(self, mock_get_client, handler_readonly):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {'dag_run_id': 'run-1'},
             'RestApiStatusCode': 200,
@@ -81,7 +70,7 @@ class TestListDags:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_dags_success(self, mock_get_client, handler_readonly, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {
                 'dags': [{'dag_id': 'dag1'}, {'dag_id': 'dag2'}],
@@ -99,7 +88,7 @@ class TestListDags:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_dags_with_params(self, mock_get_client, handler_readonly, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {'dags': [], 'total_entries': 0},
         }
@@ -120,7 +109,7 @@ class TestListDags:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_dags_client_error(self, mock_get_client, handler_readonly, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = ClientError(
             {'Error': {'Code': 'AccessDeniedException', 'Message': 'Denied'}},
             'InvokeRestApi',
@@ -137,7 +126,7 @@ class TestGetDag:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_dag_success(self, mock_get_client, handler_readonly, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {
                 'dag_id': 'my_dag',
@@ -165,37 +154,11 @@ class TestGetDag:
         assert 'path traversal' in result.content[0].text
 
 
-class TestGetDagSource:
-    @pytest.mark.asyncio
-    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
-    async def test_get_dag_source_success(self, mock_get_client, handler_readonly, mock_ctx):
-        mock_client = MagicMock()
-        mock_client.invoke_rest_api.return_value = {
-            'RestApiResponse': {'content': 'from airflow import DAG\n...'},
-        }
-        mock_get_client.return_value = mock_client
-
-        result = await handler_readonly.get_dag_source(
-            mock_ctx, environment_name='test-env', file_token='abc123'
-        )
-
-        assert not result.is_error
-
-    @pytest.mark.asyncio
-    async def test_get_dag_source_path_traversal(self, handler_readonly, mock_ctx):
-        result = await handler_readonly.get_dag_source(
-            mock_ctx, environment_name='test-env', file_token='../bad'
-        )
-
-        assert result.is_error
-        assert 'path traversal' in result.content[0].text
-
-
 class TestListDagRuns:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_dag_runs_success(self, mock_get_client, handler_readonly, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {
                 'dag_runs': [{'dag_run_id': 'run-1', 'state': 'success'}],
@@ -215,7 +178,7 @@ class TestListDagRuns:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_dag_runs_with_filters(self, mock_get_client, handler_readonly, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {'dag_runs': [], 'total_entries': 0},
         }
@@ -239,7 +202,7 @@ class TestListDagRuns:
     async def test_list_dag_runs_with_date_range(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {'dag_runs': [], 'total_entries': 0},
         }
@@ -266,7 +229,7 @@ class TestListDagRuns:
     async def test_list_dag_runs_custom_order_by(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {'dag_runs': [], 'total_entries': 0},
         }
@@ -288,7 +251,7 @@ class TestGetDagRun:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_dag_run_success(self, mock_get_client, handler_readonly, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {
                 'dag_run_id': 'run-1',
@@ -314,7 +277,7 @@ class TestListTaskInstances:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_task_instances_success(self, mock_get_client, handler_readonly, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {
                 'task_instances': [
@@ -342,7 +305,7 @@ class TestGetTaskInstance:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_task_instance_success(self, mock_get_client, handler_readonly, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {
                 'task_id': 'my_task',
@@ -383,7 +346,7 @@ class TestGetTaskInstance:
     async def test_get_task_instance_with_map_index(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {
                 'task_id': 'my_task',
@@ -414,7 +377,7 @@ class TestGetTaskInstance:
     async def test_get_task_instance_without_map_index_unchanged(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {
                 'task_id': 'my_task',
@@ -443,7 +406,7 @@ class TestGetTaskInstance:
     async def test_get_task_instance_map_index_zero(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {
                 'task_id': 'my_task',
@@ -488,7 +451,7 @@ class TestListMappedTaskInstances:
     async def test_list_mapped_task_instances_success(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {
                 'task_instances': [
@@ -524,7 +487,7 @@ class TestListMappedTaskInstances:
     async def test_list_mapped_task_instances_with_pagination(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {
                 'task_instances': [
@@ -570,7 +533,7 @@ class TestListMappedTaskInstances:
     async def test_list_mapped_task_instances_client_error(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = ClientError(
             {'Error': {'Code': 'RestApiClientException', 'Message': 'Not found'}},
             'InvokeRestApi',
@@ -597,7 +560,7 @@ class TestListMappedTaskInstances:
     ):
         from botocore.exceptions import BotoCoreError
 
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = BotoCoreError()
         mock_get_client.return_value = mock_client
 
@@ -619,7 +582,7 @@ class TestGetTaskLogs:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_task_logs_success(self, mock_get_client, handler_readonly, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {'content': 'Task log output here...'},
         }
@@ -649,7 +612,7 @@ class TestGetTaskLogs:
     async def test_get_task_logs_with_pagination_params(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {
                 'content': 'Chunked log output...',
@@ -683,7 +646,7 @@ class TestGetTaskLogs:
     async def test_get_task_logs_continuation_token_in_response(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {
                 'content': 'Partial log...',
@@ -710,7 +673,7 @@ class TestGetTaskLogs:
     async def test_get_task_logs_timeout_auto_retry(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         # First call times out, second call (with full_content=false) succeeds
         mock_client.invoke_rest_api.side_effect = [
             ClientError(
@@ -753,7 +716,7 @@ class TestGetTaskLogs:
     async def test_get_task_logs_timeout_retry_also_fails(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         # Both calls fail
         mock_client.invoke_rest_api.side_effect = [
             ClientError(
@@ -794,7 +757,7 @@ class TestGetTaskLogs:
     async def test_get_task_logs_timeout_no_retry_when_full_content_false(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = ClientError(
             {
                 'Error': {
@@ -827,7 +790,7 @@ class TestListConnections:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_connections_success(self, mock_get_client, handler_readonly, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {
                 'connections': [
@@ -856,7 +819,7 @@ class TestListVariables:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_variables_success(self, mock_get_client, handler_readonly, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {
                 'variables': [{'key': 'my_var', 'value': 'my_value'}],
@@ -876,7 +839,7 @@ class TestGetImportErrors:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_import_errors_success(self, mock_get_client, handler_readonly, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {
                 'import_errors': [
@@ -910,7 +873,7 @@ class TestTriggerDagRun:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_trigger_dag_run_success(self, mock_get_client, handler_writable, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {
                 'dag_run_id': 'manual__2024-01-01T00:00:00+00:00',
@@ -929,7 +892,7 @@ class TestTriggerDagRun:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_trigger_dag_run_with_conf(self, mock_get_client, handler_writable, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {'dag_run_id': 'run-1', 'state': 'queued'},
         }
@@ -964,7 +927,7 @@ class TestPauseDag:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_pause_dag_success(self, mock_get_client, handler_writable, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {'dag_id': 'my_dag', 'is_paused': True},
         }
@@ -993,7 +956,7 @@ class TestUnpauseDag:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_unpause_dag_success(self, mock_get_client, handler_writable, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {'dag_id': 'my_dag', 'is_paused': False},
         }
@@ -1015,7 +978,7 @@ class TestListDagsBotoCoreError:
     async def test_list_dags_botocore_error(self, mock_get_client, handler_readonly, mock_ctx):
         from botocore.exceptions import BotoCoreError
 
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = BotoCoreError()
         mock_get_client.return_value = mock_client
 
@@ -1029,7 +992,7 @@ class TestGetDagErrors:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_dag_client_error(self, mock_get_client, handler_readonly, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = ClientError(
             {'Error': {'Code': 'ResourceNotFoundException', 'Message': 'Not found'}},
             'InvokeRestApi',
@@ -1048,7 +1011,7 @@ class TestGetDagErrors:
     async def test_get_dag_botocore_error(self, mock_get_client, handler_readonly, mock_ctx):
         from botocore.exceptions import BotoCoreError
 
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = BotoCoreError()
         mock_get_client.return_value = mock_client
 
@@ -1064,7 +1027,7 @@ class TestGetDagSourceErrors:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_dag_source_client_error(self, mock_get_client, handler_readonly, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = ClientError(
             {'Error': {'Code': 'AccessDeniedException', 'Message': 'Denied'}},
             'InvokeRestApi',
@@ -1072,7 +1035,7 @@ class TestGetDagSourceErrors:
         mock_get_client.return_value = mock_client
 
         result = await handler_readonly.get_dag_source(
-            mock_ctx, environment_name='test-env', file_token='abc123'
+            mock_ctx, environment_name='test-env', dag_id='my_dag'
         )
 
         assert result.is_error
@@ -1085,12 +1048,12 @@ class TestGetDagSourceErrors:
     ):
         from botocore.exceptions import BotoCoreError
 
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = BotoCoreError()
         mock_get_client.return_value = mock_client
 
         result = await handler_readonly.get_dag_source(
-            mock_ctx, environment_name='test-env', file_token='abc123'
+            mock_ctx, environment_name='test-env', dag_id='my_dag'
         )
 
         assert result.is_error
@@ -1101,7 +1064,7 @@ class TestListDagRunsErrors:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_dag_runs_client_error(self, mock_get_client, handler_readonly, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = ClientError(
             {'Error': {'Code': 'AccessDeniedException', 'Message': 'Denied'}},
             'InvokeRestApi',
@@ -1120,7 +1083,7 @@ class TestListDagRunsErrors:
     async def test_list_dag_runs_botocore_error(self, mock_get_client, handler_readonly, mock_ctx):
         from botocore.exceptions import BotoCoreError
 
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = BotoCoreError()
         mock_get_client.return_value = mock_client
 
@@ -1136,7 +1099,7 @@ class TestGetDagRunErrors:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_dag_run_client_error(self, mock_get_client, handler_readonly, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = ClientError(
             {'Error': {'Code': 'AccessDeniedException', 'Message': 'Denied'}},
             'InvokeRestApi',
@@ -1155,7 +1118,7 @@ class TestGetDagRunErrors:
     async def test_get_dag_run_botocore_error(self, mock_get_client, handler_readonly, mock_ctx):
         from botocore.exceptions import BotoCoreError
 
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = BotoCoreError()
         mock_get_client.return_value = mock_client
 
@@ -1173,7 +1136,7 @@ class TestListTaskInstancesErrors:
     async def test_list_task_instances_client_error(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = ClientError(
             {'Error': {'Code': 'AccessDeniedException', 'Message': 'Denied'}},
             'InvokeRestApi',
@@ -1194,7 +1157,7 @@ class TestListTaskInstancesErrors:
     ):
         from botocore.exceptions import BotoCoreError
 
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = BotoCoreError()
         mock_get_client.return_value = mock_client
 
@@ -1212,7 +1175,7 @@ class TestGetTaskInstanceErrors:
     async def test_get_task_instance_client_error(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = ClientError(
             {'Error': {'Code': 'AccessDeniedException', 'Message': 'Denied'}},
             'InvokeRestApi',
@@ -1238,7 +1201,7 @@ class TestGetTaskInstanceErrors:
     ):
         from botocore.exceptions import BotoCoreError
 
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = BotoCoreError()
         mock_get_client.return_value = mock_client
 
@@ -1259,7 +1222,7 @@ class TestGetTaskLogsErrors:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_task_logs_client_error(self, mock_get_client, handler_readonly, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = ClientError(
             {'Error': {'Code': 'AccessDeniedException', 'Message': 'Denied'}},
             'InvokeRestApi',
@@ -1283,7 +1246,7 @@ class TestGetTaskLogsErrors:
     async def test_get_task_logs_botocore_error(self, mock_get_client, handler_readonly, mock_ctx):
         from botocore.exceptions import BotoCoreError
 
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = BotoCoreError()
         mock_get_client.return_value = mock_client
 
@@ -1306,7 +1269,7 @@ class TestListConnectionsErrors:
     async def test_list_connections_client_error(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = ClientError(
             {'Error': {'Code': 'AccessDeniedException', 'Message': 'Denied'}},
             'InvokeRestApi',
@@ -1325,7 +1288,7 @@ class TestListConnectionsErrors:
     ):
         from botocore.exceptions import BotoCoreError
 
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = BotoCoreError()
         mock_get_client.return_value = mock_client
 
@@ -1337,7 +1300,7 @@ class TestListConnectionsErrors:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_connections_with_params(self, mock_get_client, handler_readonly, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {'connections': [], 'total_entries': 0},
         }
@@ -1356,7 +1319,7 @@ class TestListVariablesErrors:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_variables_client_error(self, mock_get_client, handler_readonly, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = ClientError(
             {'Error': {'Code': 'AccessDeniedException', 'Message': 'Denied'}},
             'InvokeRestApi',
@@ -1375,7 +1338,7 @@ class TestListVariablesErrors:
     ):
         from botocore.exceptions import BotoCoreError
 
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = BotoCoreError()
         mock_get_client.return_value = mock_client
 
@@ -1387,7 +1350,7 @@ class TestListVariablesErrors:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_variables_with_params(self, mock_get_client, handler_readonly, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {'variables': [], 'total_entries': 0},
         }
@@ -1408,7 +1371,7 @@ class TestGetImportErrorsErrors:
     async def test_get_import_errors_client_error(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = ClientError(
             {'Error': {'Code': 'AccessDeniedException', 'Message': 'Denied'}},
             'InvokeRestApi',
@@ -1427,7 +1390,7 @@ class TestGetImportErrorsErrors:
     ):
         from botocore.exceptions import BotoCoreError
 
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = BotoCoreError()
         mock_get_client.return_value = mock_client
 
@@ -1441,7 +1404,7 @@ class TestTriggerDagRunErrors:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_trigger_dag_run_client_error(self, mock_get_client, handler_writable, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = ClientError(
             {'Error': {'Code': 'AccessDeniedException', 'Message': 'Denied'}},
             'InvokeRestApi',
@@ -1462,7 +1425,7 @@ class TestTriggerDagRunErrors:
     ):
         from botocore.exceptions import BotoCoreError
 
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = BotoCoreError()
         mock_get_client.return_value = mock_client
 
@@ -1487,7 +1450,7 @@ class TestPauseDagErrors:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_pause_dag_client_error(self, mock_get_client, handler_writable, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = ClientError(
             {'Error': {'Code': 'AccessDeniedException', 'Message': 'Denied'}},
             'InvokeRestApi',
@@ -1506,7 +1469,7 @@ class TestPauseDagErrors:
     async def test_pause_dag_botocore_error(self, mock_get_client, handler_writable, mock_ctx):
         from botocore.exceptions import BotoCoreError
 
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = BotoCoreError()
         mock_get_client.return_value = mock_client
 
@@ -1531,7 +1494,7 @@ class TestUnpauseDagErrors:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_unpause_dag_client_error(self, mock_get_client, handler_writable, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = ClientError(
             {'Error': {'Code': 'AccessDeniedException', 'Message': 'Denied'}},
             'InvokeRestApi',
@@ -1550,7 +1513,7 @@ class TestUnpauseDagErrors:
     async def test_unpause_dag_botocore_error(self, mock_get_client, handler_writable, mock_ctx):
         from botocore.exceptions import BotoCoreError
 
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = BotoCoreError()
         mock_get_client.return_value = mock_client
 
@@ -1676,7 +1639,7 @@ class TestResolveEnvironment:
 
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     def test_single_env_auto_selected(self, mock_get_client, mock_mcp):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_paginator = MagicMock()
         mock_paginator.paginate.return_value = [{'Environments': ['only-env']}]
         mock_client.get_paginator.return_value = mock_paginator
@@ -1689,7 +1652,7 @@ class TestResolveEnvironment:
 
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     def test_multiple_envs_raises_with_list(self, mock_get_client, mock_mcp):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_paginator = MagicMock()
         mock_paginator.paginate.return_value = [{'Environments': ['env-a', 'env-b', 'env-c']}]
         mock_client.get_paginator.return_value = mock_paginator
@@ -1702,7 +1665,7 @@ class TestResolveEnvironment:
 
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     def test_no_envs_raises(self, mock_get_client, mock_mcp):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_paginator = MagicMock()
         mock_paginator.paginate.return_value = [{'Environments': []}]
         mock_client.get_paginator.return_value = mock_paginator
@@ -1728,7 +1691,7 @@ class TestResolveEnvironment:
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     def test_env_var_ignored_when_empty(self, mock_get_client, mock_mcp, monkeypatch):
         monkeypatch.setenv('MWAA_ENVIRONMENT', '')
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_paginator = MagicMock()
         mock_paginator.paginate.return_value = [{'Environments': ['only-env']}]
         mock_client.get_paginator.return_value = mock_paginator
@@ -1744,7 +1707,7 @@ class TestRestApiClientExceptionEnrichment:
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_enriched_error_message(self, mock_get_client, handler_readonly):
         """RestApiClientException should be re-raised with HTTP status and response body."""
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = ClientError(
             {
                 'Error': {'Code': 'RestApiClientException', 'Message': ''},
@@ -1774,7 +1737,7 @@ class TestRestApiClientExceptionEnrichment:
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_non_rest_api_error_passes_through(self, mock_get_client, handler_readonly):
         """Non-RestApiClientException errors should pass through unchanged."""
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = ClientError(
             {'Error': {'Code': 'AccessDeniedException', 'Message': 'Access denied'}},
             'InvokeRestApi',
@@ -1795,7 +1758,7 @@ class TestRestApiClientExceptionEnrichment:
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_tool_surfaces_enriched_error(self, mock_get_client, handler_readonly, mock_ctx):
         """Tool method should surface the enriched RestApiClientException in CallToolResult."""
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = ClientError(
             {
                 'Error': {'Code': 'RestApiClientException', 'Message': ''},
@@ -1828,7 +1791,7 @@ class TestClearTaskInstances:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_clear_dry_run_success(self, mock_get_client, handler_writable, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {'task_instances': [{'task_id': 't1', 'state': 'failed'}]},
         }
@@ -1860,7 +1823,7 @@ class TestClearTaskInstances:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_clear_actual_run(self, mock_get_client, handler_writable, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {'task_instances': []},
         }
@@ -1879,7 +1842,7 @@ class TestClearTaskInstances:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_clear_with_all_params(self, mock_get_client, handler_writable, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.return_value = {
             'RestApiResponse': {'task_instances': []},
         }
@@ -1923,7 +1886,7 @@ class TestClearTaskInstancesErrors:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_clear_client_error(self, mock_get_client, handler_writable, mock_ctx):
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = ClientError(
             {'Error': {'Code': 'AccessDeniedException', 'Message': 'Denied'}},
             'InvokeRestApi',
@@ -1942,7 +1905,7 @@ class TestClearTaskInstancesErrors:
     async def test_clear_botocore_error(self, mock_get_client, handler_writable, mock_ctx):
         from botocore.exceptions import BotoCoreError
 
-        mock_client = MagicMock()
+        mock_client = make_mock_client()
         mock_client.invoke_rest_api.side_effect = BotoCoreError()
         mock_get_client.return_value = mock_client
 

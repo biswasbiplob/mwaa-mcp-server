@@ -3,6 +3,10 @@
 import json
 import os
 import re
+from botocore.exceptions import BotoCoreError, ClientError
+from loguru import logger
+from mcp.server.mcpserver import Context
+from mcp.types import CallToolResult, TextContent
 from mwaa_mcp_server.aws_client import get_mwaa_client
 from mwaa_mcp_server.consts import (
     CLEAR_TASK_INSTANCES_PATH,
@@ -12,6 +16,7 @@ from mwaa_mcp_server.consts import (
     DAG_RUN_PATH,
     DAG_RUNS_PATH,
     DAG_SOURCE_PATH,
+    DAG_SOURCE_PATH_V3,
     DAGS_PATH,
     ENV_MWAA_ENVIRONMENT,
     ENVIRONMENT_NAME_PATTERN,
@@ -24,10 +29,6 @@ from mwaa_mcp_server.consts import (
     VARIABLE_SENSITIVE_KEY_PATTERNS,
     VARIABLES_PATH,
 )
-from botocore.exceptions import BotoCoreError, ClientError
-from loguru import logger
-from mcp.server.mcpserver import Context
-from mcp.types import CallToolResult, TextContent
 from pydantic import Field
 from typing import Optional
 
@@ -48,6 +49,7 @@ class AirflowTools:
         """
         self.mcp = mcp
         self.allow_write = allow_write
+        self._airflow_major_versions: dict = {}
 
         # Read tools
         self.mcp.tool(name='list-dags')(self.list_dags)
@@ -80,6 +82,41 @@ class AirflowTools:
                 'Write operations require the --allow-write flag. '
                 'Restart the server with --allow-write to enable mutations.'
             )
+
+    def _get_airflow_major_version(
+        self,
+        environment_name: str,
+        region: Optional[str] = None,
+        profile_name: Optional[str] = None,
+    ) -> int:
+        """Return the Airflow major version of an environment, cached per process.
+
+        Args:
+            environment_name: The MWAA environment name.
+            region: AWS region override.
+            profile_name: AWS CLI profile name override.
+
+        Returns:
+            The Airflow major version (e.g. 2 or 3).
+
+        Raises:
+            ValueError: If the AirflowVersion string cannot be parsed.
+        """
+        key = (environment_name, region, profile_name)
+        cached = self._airflow_major_versions.get(key)
+        if cached is not None:
+            return cached
+
+        client = get_mwaa_client(region, profile_name)
+        version = client.get_environment(Name=environment_name)['Environment']['AirflowVersion']
+        try:
+            major = int(str(version).split('.')[0])
+        except ValueError:
+            raise ValueError(
+                f'Cannot parse AirflowVersion {version!r} for environment {environment_name!r}'
+            )
+        self._airflow_major_versions[key] = major
+        return major
 
     def _resolve_environment(
         self,
@@ -445,9 +482,9 @@ class AirflowTools:
             default=None,
             description='Name of the MWAA environment. If omitted and only one environment exists, it is used automatically.',
         ),
-        file_token: str = Field(
+        dag_id: str = Field(
             ...,
-            description='The file token from the DAG details (obtained from get-dag).',
+            description='The DAG ID to get the source code for.',
         ),
         region: Optional[str] = Field(
             default=None,
@@ -460,13 +497,14 @@ class AirflowTools:
     ) -> CallToolResult:
         """Get the source code of a DAG file.
 
-        Returns the Python source code of a DAG file using the file token
-        obtained from the get-dag tool response.
+        Returns the Python source code of the DAG. Works on both Airflow 2.x
+        and 3.x environments: on 3.x the source is fetched by DAG ID directly;
+        on 2.x the server resolves the DAG's file token first.
 
         Args:
             ctx: The MCP context.
             environment_name: Name of the MWAA environment.
-            file_token: The file token from DAG details.
+            dag_id: The DAG identifier.
             region: AWS region override.
             profile_name: AWS CLI profile name override.
 
@@ -475,8 +513,26 @@ class AirflowTools:
         """
         try:
             environment_name = self._resolve_environment(environment_name, region, profile_name)
-            self._sanitize_path_param(file_token, 'file_token')
-            path = DAG_SOURCE_PATH.format(file_token=file_token)
+            self._sanitize_path_param(dag_id, 'dag_id')
+
+            if self._get_airflow_major_version(environment_name, region, profile_name) >= 3:
+                path = DAG_SOURCE_PATH_V3.format(dag_id=dag_id)
+            else:
+                dag_details = await self._invoke_airflow_api(
+                    environment_name=environment_name,
+                    method='GET',
+                    path=DAG_PATH.format(dag_id=dag_id),
+                    region=region,
+                    profile_name=profile_name,
+                )
+                file_token = dag_details.get('file_token')
+                if not file_token:
+                    raise ValueError(
+                        f'file_token not found in DAG details for {dag_id!r}; '
+                        'cannot fetch DAG source on Airflow 2.x'
+                    )
+                self._sanitize_path_param(str(file_token), 'file_token')
+                path = DAG_SOURCE_PATH.format(file_token=file_token)
 
             response = await self._invoke_airflow_api(
                 environment_name=environment_name,
@@ -605,6 +661,17 @@ class AirflowTools:
                 query_params['execution_date_gte'] = execution_date_gte
             if execution_date_lte is not None:
                 query_params['execution_date_lte'] = execution_date_lte
+
+            # Airflow 3 renamed execution_date to logical_date in the REST API
+            if self._get_airflow_major_version(environment_name, region, profile_name) >= 3:
+                if 'order_by' in query_params:
+                    query_params['order_by'] = query_params['order_by'].replace(
+                        'execution_date', 'logical_date'
+                    )
+                if 'execution_date_gte' in query_params:
+                    query_params['logical_date_gte'] = query_params.pop('execution_date_gte')
+                if 'execution_date_lte' in query_params:
+                    query_params['logical_date_lte'] = query_params.pop('execution_date_lte')
 
             response = await self._invoke_airflow_api(
                 environment_name=environment_name,
@@ -1574,6 +1641,9 @@ class AirflowTools:
                 body['conf'] = conf
             if logical_date is not None:
                 body['logical_date'] = logical_date
+            elif self._get_airflow_major_version(environment_name, region, profile_name) >= 3:
+                # Airflow 3's TriggerDAGRunPostBody requires the key; null lets the server assign
+                body['logical_date'] = None
 
             response = await self._invoke_airflow_api(
                 environment_name=environment_name,
