@@ -16,8 +16,8 @@
 
 import json
 import re
-from awslabs.mwaa_mcp_server.aws_client import get_mwaa_client
-from awslabs.mwaa_mcp_server.consts import ENVIRONMENT_NAME_PATTERN
+from mwaa_mcp_server.aws_client import get_mwaa_client
+from mwaa_mcp_server.consts import ENVIRONMENT_NAME_PATTERN
 from botocore.exceptions import BotoCoreError, ClientError
 from loguru import logger
 from mcp.server.fastmcp import Context

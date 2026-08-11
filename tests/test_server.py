@@ -15,18 +15,18 @@
 """Tests for the MWAA MCP Server."""
 
 import pytest
-from awslabs.mwaa_mcp_server.airflow_tools import AirflowTools
-from awslabs.mwaa_mcp_server.environment_tools import EnvironmentTools
+from mwaa_mcp_server.airflow_tools import AirflowTools
+from mwaa_mcp_server.environment_tools import EnvironmentTools
 from unittest.mock import MagicMock
 
 
 @pytest.mark.asyncio
 async def test_server_initialization():
-    from awslabs.mwaa_mcp_server.server import create_server
+    from mwaa_mcp_server.server import create_server
 
     server = create_server()
 
-    assert server.name == 'awslabs.mwaa-mcp-server'
+    assert server.name == 'mwaa-mcp-server'
     assert server.instructions is not None and 'MWAA MCP Server' in server.instructions
     assert 'pydantic' in server.dependencies
     assert 'loguru' in server.dependencies

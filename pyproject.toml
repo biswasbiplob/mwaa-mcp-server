@@ -1,5 +1,5 @@
 [project]
-name = "awslabs.mwaa-mcp-server"
+name = "mwaa-mcp-server"
 version = "0.1.0"
 description = "An AWS Labs Model Context Protocol (MCP) server for Amazon MWAA"
 readme = "README.md"
@@ -36,7 +36,7 @@ repository = "https://github.com/awslabs/mcp.git"
 changelog = "https://github.com/awslabs/mcp/blob/main/src/mwaa-mcp-server/CHANGELOG.md"
 
 [project.scripts]
-"awslabs.mwaa-mcp-server" = "awslabs.mwaa_mcp_server.server:main"
+"mwaa-mcp-server" = "mwaa_mcp_server.server:main"
 
 [dependency-groups]
 dev = [
@@ -96,7 +96,7 @@ line-ending = "auto"
 docstring-code-format = true
 
 [tool.pyright]
-include = ["awslabs", "tests"]
+include = ["mwaa_mcp_server", "tests"]
 exclude = ["**/__pycache__", "**/.venv", "**/node_modules", "**/dist", "**/build"]
 reportAttributeAccessIssue = false
 
@@ -106,12 +106,12 @@ version = "0.1.0"
 tag_format = "v$version"
 version_files = [
     "pyproject.toml:version",
-    "awslabs/mwaa_mcp_server/__init__.py:__version__"
+    "mwaa_mcp_server/__init__.py:__version__"
 ]
 update_changelog_on_bump = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["awslabs"]
+packages = ["mwaa_mcp_server"]
 
 [tool.bandit]
 exclude_dirs = ["venv", ".venv", "tests"]
@@ -134,4 +134,4 @@ exclude_also = [
 ]
 
 [tool.coverage.run]
-source = ["awslabs"]
+source = ["mwaa_mcp_server"]

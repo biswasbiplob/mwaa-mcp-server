@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Tests for the awslabs.mwaa-mcp-server package."""
+"""Tests for the mwaa-mcp-server package."""
 
 import importlib
 import re
@@ -22,27 +22,27 @@ class TestInit:
 
     def test_version(self):
         """Test that __version__ is defined and follows semantic versioning."""
-        import awslabs.mwaa_mcp_server
+        import mwaa_mcp_server
 
-        assert hasattr(awslabs.mwaa_mcp_server, '__version__')
-        assert isinstance(awslabs.mwaa_mcp_server.__version__, str)
+        assert hasattr(mwaa_mcp_server, '__version__')
+        assert isinstance(mwaa_mcp_server.__version__, str)
 
         version_pattern = r'^\d+\.\d+\.\d+$'
-        assert re.match(version_pattern, awslabs.mwaa_mcp_server.__version__), (
-            f"Version '{awslabs.mwaa_mcp_server.__version__}' does not follow semantic versioning"
+        assert re.match(version_pattern, mwaa_mcp_server.__version__), (
+            f"Version '{mwaa_mcp_server.__version__}' does not follow semantic versioning"
         )
 
     def test_mcp_server_version(self):
         """Test that MCP_SERVER_VERSION equals __version__."""
-        import awslabs.mwaa_mcp_server
+        import mwaa_mcp_server
 
-        assert hasattr(awslabs.mwaa_mcp_server, 'MCP_SERVER_VERSION')
-        assert awslabs.mwaa_mcp_server.MCP_SERVER_VERSION == awslabs.mwaa_mcp_server.__version__
+        assert hasattr(mwaa_mcp_server, 'MCP_SERVER_VERSION')
+        assert mwaa_mcp_server.MCP_SERVER_VERSION == mwaa_mcp_server.__version__
 
     def test_module_reload(self):
         """Test that the module can be reloaded."""
-        import awslabs.mwaa_mcp_server
+        import mwaa_mcp_server
 
-        original_version = awslabs.mwaa_mcp_server.__version__
-        importlib.reload(awslabs.mwaa_mcp_server)
-        assert awslabs.mwaa_mcp_server.__version__ == original_version
+        original_version = mwaa_mcp_server.__version__
+        importlib.reload(mwaa_mcp_server)
+        assert mwaa_mcp_server.__version__ == original_version

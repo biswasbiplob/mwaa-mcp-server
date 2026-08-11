@@ -25,8 +25,8 @@ Environment Variables:
 """
 
 import argparse
-from awslabs.mwaa_mcp_server.airflow_tools import AirflowTools
-from awslabs.mwaa_mcp_server.environment_tools import EnvironmentTools
+from mwaa_mcp_server.airflow_tools import AirflowTools
+from mwaa_mcp_server.environment_tools import EnvironmentTools
 from loguru import logger
 from mcp.server.fastmcp import FastMCP
 
@@ -102,7 +102,7 @@ mcp = None
 def create_server():
     """Create and configure the MCP server instance."""
     return FastMCP(
-        'awslabs.mwaa-mcp-server',
+        'mwaa-mcp-server',
         instructions=SERVER_INSTRUCTIONS,
         dependencies=SERVER_DEPENDENCIES,
     )

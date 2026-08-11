@@ -16,7 +16,7 @@
 
 import json
 import pytest
-from awslabs.mwaa_mcp_server.environment_tools import EnvironmentTools
+from mwaa_mcp_server.environment_tools import EnvironmentTools
 from botocore.exceptions import ClientError
 from unittest.mock import MagicMock, patch
 
@@ -35,7 +35,7 @@ def handler_writable(mock_mcp):
 
 class TestListEnvironments:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.environment_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.environment_tools.get_mwaa_client')
     async def test_list_environments_success(self, mock_get_client, handler_readonly, mock_ctx):
         mock_client = MagicMock()
         mock_paginator = MagicMock()
@@ -54,7 +54,7 @@ class TestListEnvironments:
         assert data['environments'] == ['env-1', 'env-2', 'env-3']
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.environment_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.environment_tools.get_mwaa_client')
     async def test_list_environments_empty(self, mock_get_client, handler_readonly, mock_ctx):
         mock_client = MagicMock()
         mock_paginator = MagicMock()
@@ -69,7 +69,7 @@ class TestListEnvironments:
         assert data['environments'] == []
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.environment_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.environment_tools.get_mwaa_client')
     async def test_list_environments_client_error(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
@@ -88,7 +88,7 @@ class TestListEnvironments:
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.environment_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.environment_tools.get_mwaa_client')
     async def test_list_environments_with_region(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
@@ -110,7 +110,7 @@ class TestListEnvironments:
 
 class TestGetEnvironment:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.environment_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.environment_tools.get_mwaa_client')
     async def test_get_environment_success(self, mock_get_client, handler_readonly, mock_ctx):
         mock_client = MagicMock()
         mock_client.get_environment.return_value = {
@@ -137,7 +137,7 @@ class TestGetEnvironment:
         assert 'Invalid environment name' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.environment_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.environment_tools.get_mwaa_client')
     async def test_get_environment_not_found(self, mock_get_client, handler_readonly, mock_ctx):
         mock_client = MagicMock()
         mock_client.get_environment.side_effect = ClientError(
@@ -171,7 +171,7 @@ class TestCreateEnvironment:
         assert '--allow-write' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.environment_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.environment_tools.get_mwaa_client')
     async def test_create_environment_success(self, mock_get_client, handler_writable, mock_ctx):
         mock_client = MagicMock()
         mock_client.create_environment.return_value = {
@@ -195,7 +195,7 @@ class TestCreateEnvironment:
         assert 'creation initiated' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.environment_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.environment_tools.get_mwaa_client')
     async def test_create_environment_with_optional_params(
         self, mock_get_client, handler_writable, mock_ctx
     ):
@@ -255,7 +255,7 @@ class TestUpdateEnvironment:
         assert '--allow-write' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.environment_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.environment_tools.get_mwaa_client')
     async def test_update_environment_success(self, mock_get_client, handler_writable, mock_ctx):
         mock_client = MagicMock()
         mock_client.update_environment.return_value = {
@@ -285,7 +285,7 @@ class TestDeleteEnvironment:
         assert '--allow-write' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.environment_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.environment_tools.get_mwaa_client')
     async def test_delete_environment_success(self, mock_get_client, handler_writable, mock_ctx):
         mock_client = MagicMock()
         mock_get_client.return_value = mock_client
@@ -312,7 +312,7 @@ class TestDeleteEnvironment:
 
 class TestGetEnvironmentBotoCoreError:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.environment_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.environment_tools.get_mwaa_client')
     async def test_get_environment_botocore_error(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
@@ -330,7 +330,7 @@ class TestGetEnvironmentBotoCoreError:
 
 class TestListEnvironmentsBotoCoreError:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.environment_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.environment_tools.get_mwaa_client')
     async def test_list_environments_botocore_error(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
@@ -350,7 +350,7 @@ class TestListEnvironmentsBotoCoreError:
 
 class TestCreateEnvironmentErrors:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.environment_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.environment_tools.get_mwaa_client')
     async def test_create_environment_client_error(
         self, mock_get_client, handler_writable, mock_ctx
     ):
@@ -377,7 +377,7 @@ class TestCreateEnvironmentErrors:
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.environment_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.environment_tools.get_mwaa_client')
     async def test_create_environment_botocore_error(
         self, mock_get_client, handler_writable, mock_ctx
     ):
@@ -414,7 +414,7 @@ class TestUpdateEnvironmentErrors:
         assert 'Invalid environment name' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.environment_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.environment_tools.get_mwaa_client')
     async def test_update_environment_client_error(
         self, mock_get_client, handler_writable, mock_ctx
     ):
@@ -433,7 +433,7 @@ class TestUpdateEnvironmentErrors:
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.environment_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.environment_tools.get_mwaa_client')
     async def test_update_environment_botocore_error(
         self, mock_get_client, handler_writable, mock_ctx
     ):
@@ -451,7 +451,7 @@ class TestUpdateEnvironmentErrors:
         assert 'AWS SDK error' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.environment_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.environment_tools.get_mwaa_client')
     async def test_update_environment_with_all_params(
         self, mock_get_client, handler_writable, mock_ctx
     ):
@@ -482,7 +482,7 @@ class TestUpdateEnvironmentErrors:
 
 class TestDeleteEnvironmentErrors:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.environment_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.environment_tools.get_mwaa_client')
     async def test_delete_environment_client_error(
         self, mock_get_client, handler_writable, mock_ctx
     ):
@@ -499,7 +499,7 @@ class TestDeleteEnvironmentErrors:
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.environment_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.environment_tools.get_mwaa_client')
     async def test_delete_environment_botocore_error(
         self, mock_get_client, handler_writable, mock_ctx
     ):

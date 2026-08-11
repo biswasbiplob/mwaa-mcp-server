@@ -17,8 +17,8 @@
 import json
 import os
 import re
-from awslabs.mwaa_mcp_server.aws_client import get_mwaa_client
-from awslabs.mwaa_mcp_server.consts import (
+from mwaa_mcp_server.aws_client import get_mwaa_client
+from mwaa_mcp_server.consts import (
     CLEAR_TASK_INSTANCES_PATH,
     CONNECTION_SENSITIVE_FIELDS,
     CONNECTIONS_PATH,

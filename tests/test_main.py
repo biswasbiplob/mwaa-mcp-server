@@ -13,17 +13,17 @@
 # limitations under the License.
 """Tests for the main function in server.py."""
 
-from awslabs.mwaa_mcp_server.server import create_server, main
+from mwaa_mcp_server.server import create_server, main
 from unittest.mock import MagicMock, patch
 
 
 class TestMain:
     """Tests for the main function."""
 
-    @patch('awslabs.mwaa_mcp_server.server.AirflowTools')
-    @patch('awslabs.mwaa_mcp_server.server.EnvironmentTools')
-    @patch('awslabs.mwaa_mcp_server.server.create_server')
-    @patch('sys.argv', ['awslabs.mwaa-mcp-server'])
+    @patch('mwaa_mcp_server.server.AirflowTools')
+    @patch('mwaa_mcp_server.server.EnvironmentTools')
+    @patch('mwaa_mcp_server.server.create_server')
+    @patch('sys.argv', ['mwaa-mcp-server'])
     def test_main_default(self, mock_create_server, mock_env_tools, mock_airflow_tools):
         """Test main function with default arguments (read-only mode)."""
         mock_server = MagicMock()
@@ -36,10 +36,10 @@ class TestMain:
         mock_airflow_tools.assert_called_once_with(mock_server, False)
         mock_server.run.assert_called_once()
 
-    @patch('awslabs.mwaa_mcp_server.server.AirflowTools')
-    @patch('awslabs.mwaa_mcp_server.server.EnvironmentTools')
-    @patch('awslabs.mwaa_mcp_server.server.create_server')
-    @patch('sys.argv', ['awslabs.mwaa-mcp-server', '--allow-write'])
+    @patch('mwaa_mcp_server.server.AirflowTools')
+    @patch('mwaa_mcp_server.server.EnvironmentTools')
+    @patch('mwaa_mcp_server.server.create_server')
+    @patch('sys.argv', ['mwaa-mcp-server', '--allow-write'])
     def test_main_allow_write(self, mock_create_server, mock_env_tools, mock_airflow_tools):
         """Test main function with --allow-write flag."""
         mock_server = MagicMock()
@@ -55,7 +55,7 @@ class TestMain:
     def test_module_execution(self):
         """Test the module execution when run as __main__."""
         import inspect
-        from awslabs.mwaa_mcp_server import server
+        from mwaa_mcp_server import server
 
         source = inspect.getsource(server)
         assert "if __name__ == '__main__':" in source
@@ -63,12 +63,12 @@ class TestMain:
 
     def test_create_server(self):
         """Test that create_server creates a FastMCP instance with correct parameters."""
-        with patch('awslabs.mwaa_mcp_server.server.FastMCP') as mock_fastmcp:
+        with patch('mwaa_mcp_server.server.FastMCP') as mock_fastmcp:
             create_server()
 
             mock_fastmcp.assert_called_once()
             args, kwargs = mock_fastmcp.call_args
-            assert args[0] == 'awslabs.mwaa-mcp-server'
+            assert args[0] == 'mwaa-mcp-server'
             assert 'instructions' in kwargs
             assert 'dependencies' in kwargs
             assert 'MWAA MCP Server' in kwargs['instructions']

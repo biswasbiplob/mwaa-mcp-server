@@ -16,7 +16,7 @@
 
 import json
 import pytest
-from awslabs.mwaa_mcp_server.airflow_tools import AirflowTools
+from mwaa_mcp_server.airflow_tools import AirflowTools
 from botocore.exceptions import ClientError
 from unittest.mock import MagicMock, patch
 
@@ -35,7 +35,7 @@ def handler_writable(mock_mcp):
 
 class TestInvokeAirflowApi:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_invoke_basic_get(self, mock_get_client, handler_readonly):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.return_value = {
@@ -58,7 +58,7 @@ class TestInvokeAirflowApi:
         )
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_invoke_with_body_and_query(self, mock_get_client, handler_readonly):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.return_value = {
@@ -92,7 +92,7 @@ class TestInvokeAirflowApi:
 
 class TestListDags:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_dags_success(self, mock_get_client, handler_readonly, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.return_value = {
@@ -110,7 +110,7 @@ class TestListDags:
         assert len(data['dags']) == 2
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_dags_with_params(self, mock_get_client, handler_readonly, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.return_value = {
@@ -131,7 +131,7 @@ class TestListDags:
         }
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_dags_client_error(self, mock_get_client, handler_readonly, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.side_effect = ClientError(
@@ -148,7 +148,7 @@ class TestListDags:
 
 class TestGetDag:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_dag_success(self, mock_get_client, handler_readonly, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.return_value = {
@@ -180,7 +180,7 @@ class TestGetDag:
 
 class TestGetDagSource:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_dag_source_success(self, mock_get_client, handler_readonly, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.return_value = {
@@ -206,7 +206,7 @@ class TestGetDagSource:
 
 class TestListDagRuns:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_dag_runs_success(self, mock_get_client, handler_readonly, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.return_value = {
@@ -226,7 +226,7 @@ class TestListDagRuns:
         assert len(data['dag_runs']) == 1
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_dag_runs_with_filters(self, mock_get_client, handler_readonly, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.return_value = {
@@ -248,7 +248,7 @@ class TestListDagRuns:
         assert call_kwargs['QueryParameters']['state'] == 'failed'
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_dag_runs_with_date_range(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
@@ -275,7 +275,7 @@ class TestListDagRuns:
         assert query_params['order_by'] == '-execution_date'
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_dag_runs_custom_order_by(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
@@ -299,7 +299,7 @@ class TestListDagRuns:
 
 class TestGetDagRun:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_dag_run_success(self, mock_get_client, handler_readonly, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.return_value = {
@@ -325,7 +325,7 @@ class TestGetDagRun:
 
 class TestListTaskInstances:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_task_instances_success(self, mock_get_client, handler_readonly, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.return_value = {
@@ -353,7 +353,7 @@ class TestListTaskInstances:
 
 class TestGetTaskInstance:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_task_instance_success(self, mock_get_client, handler_readonly, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.return_value = {
@@ -392,7 +392,7 @@ class TestGetTaskInstance:
         assert 'path traversal' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_task_instance_with_map_index(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
@@ -423,7 +423,7 @@ class TestGetTaskInstance:
         assert 'map_index=3' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_task_instance_without_map_index_unchanged(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
@@ -452,7 +452,7 @@ class TestGetTaskInstance:
         assert 'map_index' not in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_task_instance_map_index_zero(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
@@ -497,7 +497,7 @@ class TestGetTaskInstance:
 
 class TestListMappedTaskInstances:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_mapped_task_instances_success(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
@@ -533,7 +533,7 @@ class TestListMappedTaskInstances:
         assert call_kwargs['Path'].endswith('/taskInstances/my_task/listMapped')
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_mapped_task_instances_with_pagination(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
@@ -579,7 +579,7 @@ class TestListMappedTaskInstances:
         assert 'path traversal' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_mapped_task_instances_client_error(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
@@ -604,7 +604,7 @@ class TestListMappedTaskInstances:
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_mapped_task_instances_botocore_error(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
@@ -630,7 +630,7 @@ class TestListMappedTaskInstances:
 
 class TestGetTaskLogs:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_task_logs_success(self, mock_get_client, handler_readonly, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.return_value = {
@@ -658,7 +658,7 @@ class TestGetTaskLogs:
         assert 'QueryParameters' not in call_kwargs
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_task_logs_with_pagination_params(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
@@ -692,7 +692,7 @@ class TestGetTaskLogs:
         }
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_task_logs_continuation_token_in_response(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
@@ -719,7 +719,7 @@ class TestGetTaskLogs:
         assert 'continuation_token' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_task_logs_timeout_auto_retry(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
@@ -762,7 +762,7 @@ class TestGetTaskLogs:
         assert retry_kwargs['QueryParameters']['full_content'] == 'false'
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_task_logs_timeout_retry_also_fails(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
@@ -803,7 +803,7 @@ class TestGetTaskLogs:
         assert 'Both full and chunked requests failed' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_task_logs_timeout_no_retry_when_full_content_false(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
@@ -838,7 +838,7 @@ class TestGetTaskLogs:
 
 class TestListConnections:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_connections_success(self, mock_get_client, handler_readonly, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.return_value = {
@@ -867,7 +867,7 @@ class TestListConnections:
 
 class TestListVariables:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_variables_success(self, mock_get_client, handler_readonly, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.return_value = {
@@ -887,7 +887,7 @@ class TestListVariables:
 
 class TestGetImportErrors:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_import_errors_success(self, mock_get_client, handler_readonly, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.return_value = {
@@ -921,7 +921,7 @@ class TestTriggerDagRun:
         assert '--allow-write' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_trigger_dag_run_success(self, mock_get_client, handler_writable, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.return_value = {
@@ -940,7 +940,7 @@ class TestTriggerDagRun:
         assert 'triggered' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_trigger_dag_run_with_conf(self, mock_get_client, handler_writable, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.return_value = {
@@ -975,7 +975,7 @@ class TestPauseDag:
         assert '--allow-write' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_pause_dag_success(self, mock_get_client, handler_writable, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.return_value = {
@@ -1004,7 +1004,7 @@ class TestUnpauseDag:
         assert '--allow-write' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_unpause_dag_success(self, mock_get_client, handler_writable, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.return_value = {
@@ -1024,7 +1024,7 @@ class TestUnpauseDag:
 
 class TestListDagsBotoCoreError:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_dags_botocore_error(self, mock_get_client, handler_readonly, mock_ctx):
         from botocore.exceptions import BotoCoreError
 
@@ -1040,7 +1040,7 @@ class TestListDagsBotoCoreError:
 
 class TestGetDagErrors:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_dag_client_error(self, mock_get_client, handler_readonly, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.side_effect = ClientError(
@@ -1057,7 +1057,7 @@ class TestGetDagErrors:
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_dag_botocore_error(self, mock_get_client, handler_readonly, mock_ctx):
         from botocore.exceptions import BotoCoreError
 
@@ -1075,7 +1075,7 @@ class TestGetDagErrors:
 
 class TestGetDagSourceErrors:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_dag_source_client_error(self, mock_get_client, handler_readonly, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.side_effect = ClientError(
@@ -1092,7 +1092,7 @@ class TestGetDagSourceErrors:
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_dag_source_botocore_error(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
@@ -1112,7 +1112,7 @@ class TestGetDagSourceErrors:
 
 class TestListDagRunsErrors:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_dag_runs_client_error(self, mock_get_client, handler_readonly, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.side_effect = ClientError(
@@ -1129,7 +1129,7 @@ class TestListDagRunsErrors:
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_dag_runs_botocore_error(self, mock_get_client, handler_readonly, mock_ctx):
         from botocore.exceptions import BotoCoreError
 
@@ -1147,7 +1147,7 @@ class TestListDagRunsErrors:
 
 class TestGetDagRunErrors:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_dag_run_client_error(self, mock_get_client, handler_readonly, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.side_effect = ClientError(
@@ -1164,7 +1164,7 @@ class TestGetDagRunErrors:
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_dag_run_botocore_error(self, mock_get_client, handler_readonly, mock_ctx):
         from botocore.exceptions import BotoCoreError
 
@@ -1182,7 +1182,7 @@ class TestGetDagRunErrors:
 
 class TestListTaskInstancesErrors:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_task_instances_client_error(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
@@ -1201,7 +1201,7 @@ class TestListTaskInstancesErrors:
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_task_instances_botocore_error(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
@@ -1221,7 +1221,7 @@ class TestListTaskInstancesErrors:
 
 class TestGetTaskInstanceErrors:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_task_instance_client_error(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
@@ -1245,7 +1245,7 @@ class TestGetTaskInstanceErrors:
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_task_instance_botocore_error(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
@@ -1270,7 +1270,7 @@ class TestGetTaskInstanceErrors:
 
 class TestGetTaskLogsErrors:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_task_logs_client_error(self, mock_get_client, handler_readonly, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.side_effect = ClientError(
@@ -1292,7 +1292,7 @@ class TestGetTaskLogsErrors:
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_task_logs_botocore_error(self, mock_get_client, handler_readonly, mock_ctx):
         from botocore.exceptions import BotoCoreError
 
@@ -1315,7 +1315,7 @@ class TestGetTaskLogsErrors:
 
 class TestListConnectionsErrors:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_connections_client_error(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
@@ -1332,7 +1332,7 @@ class TestListConnectionsErrors:
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_connections_botocore_error(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
@@ -1348,7 +1348,7 @@ class TestListConnectionsErrors:
         assert 'AWS SDK error' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_connections_with_params(self, mock_get_client, handler_readonly, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.return_value = {
@@ -1367,7 +1367,7 @@ class TestListConnectionsErrors:
 
 class TestListVariablesErrors:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_variables_client_error(self, mock_get_client, handler_readonly, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.side_effect = ClientError(
@@ -1382,7 +1382,7 @@ class TestListVariablesErrors:
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_variables_botocore_error(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
@@ -1398,7 +1398,7 @@ class TestListVariablesErrors:
         assert 'AWS SDK error' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_list_variables_with_params(self, mock_get_client, handler_readonly, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.return_value = {
@@ -1417,7 +1417,7 @@ class TestListVariablesErrors:
 
 class TestGetImportErrorsErrors:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_import_errors_client_error(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
@@ -1434,7 +1434,7 @@ class TestGetImportErrorsErrors:
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_get_import_errors_botocore_error(
         self, mock_get_client, handler_readonly, mock_ctx
     ):
@@ -1452,7 +1452,7 @@ class TestGetImportErrorsErrors:
 
 class TestTriggerDagRunErrors:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_trigger_dag_run_client_error(self, mock_get_client, handler_writable, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.side_effect = ClientError(
@@ -1469,7 +1469,7 @@ class TestTriggerDagRunErrors:
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_trigger_dag_run_botocore_error(
         self, mock_get_client, handler_writable, mock_ctx
     ):
@@ -1498,7 +1498,7 @@ class TestTriggerDagRunErrors:
 
 class TestPauseDagErrors:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_pause_dag_client_error(self, mock_get_client, handler_writable, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.side_effect = ClientError(
@@ -1515,7 +1515,7 @@ class TestPauseDagErrors:
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_pause_dag_botocore_error(self, mock_get_client, handler_writable, mock_ctx):
         from botocore.exceptions import BotoCoreError
 
@@ -1542,7 +1542,7 @@ class TestPauseDagErrors:
 
 class TestUnpauseDagErrors:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_unpause_dag_client_error(self, mock_get_client, handler_writable, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.side_effect = ClientError(
@@ -1559,7 +1559,7 @@ class TestUnpauseDagErrors:
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_unpause_dag_botocore_error(self, mock_get_client, handler_writable, mock_ctx):
         from botocore.exceptions import BotoCoreError
 
@@ -1687,7 +1687,7 @@ class TestResolveEnvironment:
         result = handler._resolve_environment('my-env')
         assert result == 'my-env'
 
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     def test_single_env_auto_selected(self, mock_get_client, mock_mcp):
         mock_client = MagicMock()
         mock_paginator = MagicMock()
@@ -1700,7 +1700,7 @@ class TestResolveEnvironment:
 
         assert result == 'only-env'
 
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     def test_multiple_envs_raises_with_list(self, mock_get_client, mock_mcp):
         mock_client = MagicMock()
         mock_paginator = MagicMock()
@@ -1713,7 +1713,7 @@ class TestResolveEnvironment:
         with pytest.raises(ValueError, match='Multiple MWAA environments found'):
             handler._resolve_environment(None)
 
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     def test_no_envs_raises(self, mock_get_client, mock_mcp):
         mock_client = MagicMock()
         mock_paginator = MagicMock()
@@ -1738,7 +1738,7 @@ class TestResolveEnvironment:
         result = handler._resolve_environment('explicit-env')
         assert result == 'explicit-env'
 
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     def test_env_var_ignored_when_empty(self, mock_get_client, mock_mcp, monkeypatch):
         monkeypatch.setenv('MWAA_ENVIRONMENT', '')
         mock_client = MagicMock()
@@ -1754,7 +1754,7 @@ class TestResolveEnvironment:
 
 class TestRestApiClientExceptionEnrichment:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_enriched_error_message(self, mock_get_client, handler_readonly):
         """RestApiClientException should be re-raised with HTTP status and response body."""
         mock_client = MagicMock()
@@ -1784,7 +1784,7 @@ class TestRestApiClientExceptionEnrichment:
         assert 'DAG not found' in error_message
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_non_rest_api_error_passes_through(self, mock_get_client, handler_readonly):
         """Non-RestApiClientException errors should pass through unchanged."""
         mock_client = MagicMock()
@@ -1805,7 +1805,7 @@ class TestRestApiClientExceptionEnrichment:
         assert 'Access denied' in str(exc_info.value)
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_tool_surfaces_enriched_error(self, mock_get_client, handler_readonly, mock_ctx):
         """Tool method should surface the enriched RestApiClientException in CallToolResult."""
         mock_client = MagicMock()
@@ -1839,7 +1839,7 @@ class TestClearTaskInstances:
         assert '--allow-write' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_clear_dry_run_success(self, mock_get_client, handler_writable, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.return_value = {
@@ -1871,7 +1871,7 @@ class TestClearTaskInstances:
         assert 'task_ids' not in call_kwargs['Body']
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_clear_actual_run(self, mock_get_client, handler_writable, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.return_value = {
@@ -1890,7 +1890,7 @@ class TestClearTaskInstances:
         assert call_kwargs['Body']['dry_run'] is False
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_clear_with_all_params(self, mock_get_client, handler_writable, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.return_value = {
@@ -1934,7 +1934,7 @@ class TestClearTaskInstances:
 
 class TestClearTaskInstancesErrors:
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_clear_client_error(self, mock_get_client, handler_writable, mock_ctx):
         mock_client = MagicMock()
         mock_client.invoke_rest_api.side_effect = ClientError(
@@ -1951,7 +1951,7 @@ class TestClearTaskInstancesErrors:
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
-    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
     async def test_clear_botocore_error(self, mock_get_client, handler_writable, mock_ctx):
         from botocore.exceptions import BotoCoreError
 
