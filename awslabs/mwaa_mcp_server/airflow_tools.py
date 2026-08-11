@@ -980,6 +980,9 @@ class AirflowTools:
         Useful for debugging failed or problematic task executions.
 
         Supports pagination for large logs via the full_content and token parameters.
+        If the request times out (common with large logs >80MB), automatically retries
+        with chunked mode (full_content=false) and returns the first chunk with a
+        continuation token for fetching subsequent chunks.
 
         Args:
             ctx: The MCP context.
@@ -1050,6 +1053,65 @@ class AirflowTools:
                 content=[TextContent(type='text', text=error_message)],
             )
         except ClientError as e:
+            error_code = e.response.get('Error', {}).get('Code', '')
+            error_message_str = e.response.get('Error', {}).get('Message', '')
+
+            # Auto-retry with chunked mode on webserver timeout
+            if (
+                error_code == 'ValidationException'
+                and 'timed out' in error_message_str.lower()
+                and full_content is not False
+            ):
+                logger.warning(
+                    f'Task log request timed out for {dag_id}/{task_id} (try {try_number}). '
+                    'Retrying with full_content=false for chunked retrieval.'
+                )
+                try:
+                    retry_params: dict = {'full_content': 'false'}
+                    if token is not None:
+                        retry_params['token'] = token
+                    if map_index is not None:
+                        retry_params['map_index'] = str(map_index)
+
+                    response = await self._invoke_airflow_api(
+                        environment_name=environment_name,
+                        method='GET',
+                        path=path,
+                        query_parameters=retry_params,
+                        region=region,
+                        profile_name=profile_name,
+                    )
+
+                    continuation_token = response.get('continuation_token')
+                    header = (
+                        f'Task logs for: {dag_id}/{dag_run_id}/{task_id} (try {try_number})\n'
+                        'Note: Full log request timed out. Returning chunked response.'
+                    )
+                    if continuation_token:
+                        header += (
+                            ' Use the continuation_token from the response to fetch more chunks.'
+                        )
+
+                    return CallToolResult(
+                        isError=False,
+                        content=[
+                            TextContent(type='text', text=header),
+                            TextContent(type='text', text=json.dumps(response, default=str)),
+                        ],
+                    )
+                except (ClientError, BotoCoreError) as retry_error:
+                    error_message = (
+                        f'Task logs too large to retrieve via Airflow API. '
+                        f'Both full and chunked requests failed. '
+                        f'Original error: {e}. Retry error: {retry_error}'
+                    )
+                    logger.error(error_message)
+                    await ctx.error(error_message)
+                    return CallToolResult(
+                        isError=True,
+                        content=[TextContent(type='text', text=error_message)],
+                    )
+
             error_message = f'AWS API error getting task logs: {e}'
             logger.error(error_message)
             await ctx.error(error_message)

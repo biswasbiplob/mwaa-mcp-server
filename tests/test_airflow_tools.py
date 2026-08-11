@@ -481,6 +481,123 @@ class TestGetTaskLogs:
         assert 'More logs available' in result.content[0].text
         assert 'continuation_token' in result.content[0].text
 
+    @pytest.mark.asyncio
+    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    async def test_get_task_logs_timeout_auto_retry(
+        self, mock_get_client, handler_readonly, mock_ctx
+    ):
+        mock_client = MagicMock()
+        # First call times out, second call (with full_content=false) succeeds
+        mock_client.invoke_rest_api.side_effect = [
+            ClientError(
+                {
+                    'Error': {
+                        'Code': 'ValidationException',
+                        'Message': 'Webserver request timed out.',
+                    }
+                },
+                'InvokeRestApi',
+            ),
+            {
+                'RestApiResponse': {
+                    'content': 'Chunked log output...',
+                    'continuation_token': 'token123',
+                },
+            },
+        ]
+        mock_get_client.return_value = mock_client
+
+        result = await handler_readonly.get_task_logs(
+            mock_ctx,
+            environment_name='test-env',
+            dag_id='my_dag',
+            dag_run_id='run-1',
+            task_id='my_task',
+            try_number=2,
+        )
+
+        assert not result.isError
+        assert 'timed out' in result.content[0].text
+        assert 'chunked response' in result.content[0].text
+        # Verify retry was called with full_content=false
+        assert mock_client.invoke_rest_api.call_count == 2
+        retry_kwargs = mock_client.invoke_rest_api.call_args_list[1][1]
+        assert retry_kwargs['QueryParameters']['full_content'] == 'false'
+
+    @pytest.mark.asyncio
+    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    async def test_get_task_logs_timeout_retry_also_fails(
+        self, mock_get_client, handler_readonly, mock_ctx
+    ):
+        mock_client = MagicMock()
+        # Both calls fail
+        mock_client.invoke_rest_api.side_effect = [
+            ClientError(
+                {
+                    'Error': {
+                        'Code': 'ValidationException',
+                        'Message': 'Webserver request timed out.',
+                    }
+                },
+                'InvokeRestApi',
+            ),
+            ClientError(
+                {
+                    'Error': {
+                        'Code': 'ValidationException',
+                        'Message': 'Webserver request timed out.',
+                    }
+                },
+                'InvokeRestApi',
+            ),
+        ]
+        mock_get_client.return_value = mock_client
+
+        result = await handler_readonly.get_task_logs(
+            mock_ctx,
+            environment_name='test-env',
+            dag_id='my_dag',
+            dag_run_id='run-1',
+            task_id='my_task',
+            try_number=1,
+        )
+
+        assert result.isError
+        assert 'Both full and chunked requests failed' in result.content[0].text
+
+    @pytest.mark.asyncio
+    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    async def test_get_task_logs_timeout_no_retry_when_full_content_false(
+        self, mock_get_client, handler_readonly, mock_ctx
+    ):
+        mock_client = MagicMock()
+        mock_client.invoke_rest_api.side_effect = ClientError(
+            {
+                'Error': {
+                    'Code': 'ValidationException',
+                    'Message': 'Webserver request timed out.',
+                }
+            },
+            'InvokeRestApi',
+        )
+        mock_get_client.return_value = mock_client
+
+        # When full_content is explicitly False, don't retry (already chunked)
+        result = await handler_readonly.get_task_logs(
+            mock_ctx,
+            environment_name='test-env',
+            dag_id='my_dag',
+            dag_run_id='run-1',
+            task_id='my_task',
+            try_number=1,
+            full_content=False,
+        )
+
+        assert result.isError
+        assert 'AWS API error' in result.content[0].text
+        # Should only have been called once (no retry)
+        assert mock_client.invoke_rest_api.call_count == 1
+
 
 class TestListConnections:
     @pytest.mark.asyncio
