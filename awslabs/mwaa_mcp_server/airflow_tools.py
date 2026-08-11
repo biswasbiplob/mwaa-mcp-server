@@ -951,6 +951,20 @@ class AirflowTools:
             ...,
             description='The task try number (starts at 1).',
         ),
+        full_content: Optional[bool] = Field(
+            default=None,
+            description='Whether to return full log content. When False, returns chunked logs '
+            'with a continuation_token for pagination. Defaults to None (server default). '
+            'Set to False explicitly for large logs.',
+        ),
+        token: Optional[str] = Field(
+            default=None,
+            description='Continuation token from a previous response to fetch the next chunk of logs.',
+        ),
+        map_index: Optional[int] = Field(
+            default=None,
+            description='For mapped task instances, the map index to get logs for.',
+        ),
         region: Optional[str] = Field(
             default=None,
             description='AWS region override.',
@@ -965,6 +979,8 @@ class AirflowTools:
         Returns the execution logs for a task instance at a specific try number.
         Useful for debugging failed or problematic task executions.
 
+        Supports pagination for large logs via the full_content and token parameters.
+
         Args:
             ctx: The MCP context.
             environment_name: Name of the MWAA environment.
@@ -972,6 +988,9 @@ class AirflowTools:
             dag_run_id: The DAG run identifier.
             task_id: The task identifier.
             try_number: The try number (starts at 1).
+            full_content: Whether to return full content or paginated chunks.
+            token: Continuation token for fetching subsequent log chunks.
+            map_index: Map index for mapped task instances.
             region: AWS region override.
             profile_name: AWS CLI profile name override.
 
@@ -990,21 +1009,35 @@ class AirflowTools:
                 try_number=try_number,
             )
 
+            query_params: dict = {}
+            if full_content is not None:
+                query_params['full_content'] = str(full_content).lower()
+            if token is not None:
+                query_params['token'] = token
+            if map_index is not None:
+                query_params['map_index'] = str(map_index)
+
             response = await self._invoke_airflow_api(
                 environment_name=environment_name,
                 method='GET',
                 path=path,
+                query_parameters=query_params or None,
                 region=region,
                 profile_name=profile_name,
             )
 
+            continuation_token = response.get('continuation_token')
+            header = f'Task logs for: {dag_id}/{dag_run_id}/{task_id} (try {try_number})'
+            if continuation_token:
+                header += (
+                    '\nMore logs available. Pass the continuation_token from the '
+                    'response to fetch the next chunk.'
+                )
+
             return CallToolResult(
                 isError=False,
                 content=[
-                    TextContent(
-                        type='text',
-                        text=f'Task logs for: {dag_id}/{dag_run_id}/{task_id} (try {try_number})',
-                    ),
+                    TextContent(type='text', text=header),
                     TextContent(type='text', text=json.dumps(response, default=str)),
                 ],
             )

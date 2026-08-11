@@ -408,10 +408,78 @@ class TestGetTaskLogs:
             dag_run_id='run-1',
             task_id='my_task',
             try_number=1,
+            full_content=None,
+            token=None,
+            map_index=None,
         )
 
         assert not result.isError
         assert 'try 1' in result.content[0].text
+
+        # Verify no query parameters passed (backwards compatible)
+        call_kwargs = mock_client.invoke_rest_api.call_args[1]
+        assert 'QueryParameters' not in call_kwargs
+
+    @pytest.mark.asyncio
+    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    async def test_get_task_logs_with_pagination_params(
+        self, mock_get_client, handler_readonly, mock_ctx
+    ):
+        mock_client = MagicMock()
+        mock_client.invoke_rest_api.return_value = {
+            'RestApiResponse': {
+                'content': 'Chunked log output...',
+                'continuation_token': 'abc123',
+            },
+        }
+        mock_get_client.return_value = mock_client
+
+        result = await handler_readonly.get_task_logs(
+            mock_ctx,
+            environment_name='test-env',
+            dag_id='my_dag',
+            dag_run_id='run-1',
+            task_id='my_task',
+            try_number=1,
+            full_content=False,
+            token='prev_token',
+            map_index=2,
+        )
+
+        assert not result.isError
+        call_kwargs = mock_client.invoke_rest_api.call_args[1]
+        assert call_kwargs['QueryParameters'] == {
+            'full_content': 'false',
+            'token': 'prev_token',
+            'map_index': '2',
+        }
+
+    @pytest.mark.asyncio
+    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    async def test_get_task_logs_continuation_token_in_response(
+        self, mock_get_client, handler_readonly, mock_ctx
+    ):
+        mock_client = MagicMock()
+        mock_client.invoke_rest_api.return_value = {
+            'RestApiResponse': {
+                'content': 'Partial log...',
+                'continuation_token': 'next_chunk_token',
+            },
+        }
+        mock_get_client.return_value = mock_client
+
+        result = await handler_readonly.get_task_logs(
+            mock_ctx,
+            environment_name='test-env',
+            dag_id='my_dag',
+            dag_run_id='run-1',
+            task_id='my_task',
+            try_number=1,
+        )
+
+        assert not result.isError
+        assert 'More logs available' in result.content[0].text
+        assert 'continuation_token' in result.content[0].text
 
 
 class TestListConnections:
