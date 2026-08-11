@@ -14,7 +14,7 @@ import argparse
 from mwaa_mcp_server.airflow_tools import AirflowTools
 from mwaa_mcp_server.environment_tools import EnvironmentTools
 from loguru import logger
-from mcp.server.fastmcp import FastMCP
+from mcp.server import MCPServer
 
 
 SERVER_INSTRUCTIONS = """
@@ -87,7 +87,7 @@ mcp = None
 
 def create_server():
     """Create and configure the MCP server instance."""
-    return FastMCP(
+    return MCPServer(
         'mwaa-mcp-server',
         instructions=SERVER_INSTRUCTIONS,
         dependencies=SERVER_DEPENDENCIES,

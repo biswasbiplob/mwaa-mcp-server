@@ -6,7 +6,7 @@ from mwaa_mcp_server.aws_client import get_mwaa_client
 from mwaa_mcp_server.consts import ENVIRONMENT_NAME_PATTERN
 from botocore.exceptions import BotoCoreError, ClientError
 from loguru import logger
-from mcp.server.fastmcp import Context
+from mcp.server.mcpserver import Context
 from mcp.types import CallToolResult, TextContent
 from pydantic import Field
 from typing import Optional
@@ -101,7 +101,7 @@ class EnvironmentTools:
                 environments.extend(page.get('Environments', []))
 
             return CallToolResult(
-                isError=False,
+                is_error=False,
                 content=[
                     TextContent(
                         type='text',
@@ -118,7 +118,7 @@ class EnvironmentTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except BotoCoreError as e:
@@ -126,7 +126,7 @@ class EnvironmentTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
 
@@ -171,7 +171,7 @@ class EnvironmentTools:
             environment = response.get('Environment', {})
 
             return CallToolResult(
-                isError=False,
+                is_error=False,
                 content=[
                     TextContent(
                         type='text',
@@ -188,7 +188,7 @@ class EnvironmentTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except ClientError as e:
@@ -196,7 +196,7 @@ class EnvironmentTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except BotoCoreError as e:
@@ -204,7 +204,7 @@ class EnvironmentTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
 
@@ -301,7 +301,7 @@ class EnvironmentTools:
             response = client.create_environment(**kwargs)
 
             return CallToolResult(
-                isError=False,
+                is_error=False,
                 content=[
                     TextContent(
                         type='text',
@@ -318,7 +318,7 @@ class EnvironmentTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except ValueError as e:
@@ -326,7 +326,7 @@ class EnvironmentTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except ClientError as e:
@@ -334,7 +334,7 @@ class EnvironmentTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except BotoCoreError as e:
@@ -342,7 +342,7 @@ class EnvironmentTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
 
@@ -431,7 +431,7 @@ class EnvironmentTools:
             response = client.update_environment(**kwargs)
 
             return CallToolResult(
-                isError=False,
+                is_error=False,
                 content=[
                     TextContent(
                         type='text',
@@ -448,7 +448,7 @@ class EnvironmentTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except ValueError as e:
@@ -456,7 +456,7 @@ class EnvironmentTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except ClientError as e:
@@ -464,7 +464,7 @@ class EnvironmentTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except BotoCoreError as e:
@@ -472,7 +472,7 @@ class EnvironmentTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
 
@@ -517,7 +517,7 @@ class EnvironmentTools:
             client.delete_environment(Name=environment_name)
 
             return CallToolResult(
-                isError=False,
+                is_error=False,
                 content=[
                     TextContent(
                         type='text',
@@ -530,7 +530,7 @@ class EnvironmentTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except ValueError as e:
@@ -538,7 +538,7 @@ class EnvironmentTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except ClientError as e:
@@ -546,7 +546,7 @@ class EnvironmentTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except BotoCoreError as e:
@@ -554,6 +554,6 @@ class EnvironmentTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )

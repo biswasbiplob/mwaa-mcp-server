@@ -35,7 +35,7 @@ class TestListEnvironments:
 
         result = await handler_readonly.list_environments(mock_ctx)
 
-        assert not result.isError
+        assert not result.is_error
         assert len(result.content) == 2
         data = json.loads(result.content[1].text)
         assert data['environments'] == ['env-1', 'env-2', 'env-3']
@@ -51,7 +51,7 @@ class TestListEnvironments:
 
         result = await handler_readonly.list_environments(mock_ctx)
 
-        assert not result.isError
+        assert not result.is_error
         data = json.loads(result.content[1].text)
         assert data['environments'] == []
 
@@ -71,7 +71,7 @@ class TestListEnvironments:
 
         result = await handler_readonly.list_environments(mock_ctx)
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -89,7 +89,7 @@ class TestListEnvironments:
             mock_ctx, region='eu-west-1', profile_name='test-profile'
         )
 
-        assert not result.isError
+        assert not result.is_error
         mock_get_client.assert_called_once_with(
             region_name='eu-west-1', profile_name='test-profile'
         )
@@ -111,7 +111,7 @@ class TestGetEnvironment:
 
         result = await handler_readonly.get_environment(mock_ctx, environment_name='test-env')
 
-        assert not result.isError
+        assert not result.is_error
         data = json.loads(result.content[1].text)
         assert data['Name'] == 'test-env'
         assert data['Status'] == 'AVAILABLE'
@@ -120,7 +120,7 @@ class TestGetEnvironment:
     async def test_get_environment_invalid_name(self, handler_readonly, mock_ctx):
         result = await handler_readonly.get_environment(mock_ctx, environment_name='123-invalid')
 
-        assert result.isError
+        assert result.is_error
         assert 'Invalid environment name' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -135,7 +135,7 @@ class TestGetEnvironment:
 
         result = await handler_readonly.get_environment(mock_ctx, environment_name='nonexistent')
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS API error' in result.content[0].text
 
 
@@ -154,7 +154,7 @@ class TestCreateEnvironment:
             },
         )
 
-        assert result.isError
+        assert result.is_error
         assert '--allow-write' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -178,7 +178,7 @@ class TestCreateEnvironment:
             },
         )
 
-        assert not result.isError
+        assert not result.is_error
         assert 'creation initiated' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -205,7 +205,7 @@ class TestCreateEnvironment:
             max_workers=10,
         )
 
-        assert not result.isError
+        assert not result.is_error
         call_kwargs = mock_client.create_environment.call_args[1]
         assert call_kwargs['AirflowVersion'] == '2.8.1'
         assert call_kwargs['EnvironmentClass'] == 'mw1.medium'
@@ -225,7 +225,7 @@ class TestCreateEnvironment:
             },
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'Invalid environment name' in result.content[0].text
 
 
@@ -238,7 +238,7 @@ class TestUpdateEnvironment:
             max_workers=20,
         )
 
-        assert result.isError
+        assert result.is_error
         assert '--allow-write' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -256,7 +256,7 @@ class TestUpdateEnvironment:
             max_workers=20,
         )
 
-        assert not result.isError
+        assert not result.is_error
         assert 'update initiated' in result.content[0].text
 
 
@@ -268,7 +268,7 @@ class TestDeleteEnvironment:
             environment_name='test-env',
         )
 
-        assert result.isError
+        assert result.is_error
         assert '--allow-write' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -282,7 +282,7 @@ class TestDeleteEnvironment:
             environment_name='test-env',
         )
 
-        assert not result.isError
+        assert not result.is_error
         assert 'deletion initiated' in result.content[0].text
         mock_client.delete_environment.assert_called_once_with(Name='test-env')
 
@@ -293,7 +293,7 @@ class TestDeleteEnvironment:
             environment_name='123-bad',
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'Invalid environment name' in result.content[0].text
 
 
@@ -311,7 +311,7 @@ class TestGetEnvironmentBotoCoreError:
 
         result = await handler_readonly.get_environment(mock_ctx, environment_name='test-env')
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS SDK error' in result.content[0].text
 
 
@@ -331,7 +331,7 @@ class TestListEnvironmentsBotoCoreError:
 
         result = await handler_readonly.list_environments(mock_ctx)
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS SDK error' in result.content[0].text
 
 
@@ -360,7 +360,7 @@ class TestCreateEnvironmentErrors:
             },
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -386,7 +386,7 @@ class TestCreateEnvironmentErrors:
             },
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS SDK error' in result.content[0].text
 
 
@@ -397,7 +397,7 @@ class TestUpdateEnvironmentErrors:
             mock_ctx, environment_name='123-bad', max_workers=10
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'Invalid environment name' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -416,7 +416,7 @@ class TestUpdateEnvironmentErrors:
             mock_ctx, environment_name='test-env', max_workers=10
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -434,7 +434,7 @@ class TestUpdateEnvironmentErrors:
             mock_ctx, environment_name='test-env', max_workers=10
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS SDK error' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -457,7 +457,7 @@ class TestUpdateEnvironmentErrors:
             source_bucket_arn='arn:aws:s3:::new-bucket',
         )
 
-        assert not result.isError
+        assert not result.is_error
         call_kwargs = mock_client.update_environment.call_args[1]
         assert call_kwargs['AirflowVersion'] == '2.9.0'
         assert call_kwargs['EnvironmentClass'] == 'mw1.large'
@@ -482,7 +482,7 @@ class TestDeleteEnvironmentErrors:
 
         result = await handler_writable.delete_environment(mock_ctx, environment_name='test-env')
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -498,7 +498,7 @@ class TestDeleteEnvironmentErrors:
 
         result = await handler_writable.delete_environment(mock_ctx, environment_name='test-env')
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS SDK error' in result.content[0].text
 
 

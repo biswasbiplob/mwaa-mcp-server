@@ -26,7 +26,7 @@ from mwaa_mcp_server.consts import (
 )
 from botocore.exceptions import BotoCoreError, ClientError
 from loguru import logger
-from mcp.server.fastmcp import Context
+from mcp.server.mcpserver import Context
 from mcp.types import CallToolResult, TextContent
 from pydantic import Field
 from typing import Optional
@@ -327,7 +327,7 @@ class AirflowTools:
             )
 
             return CallToolResult(
-                isError=False,
+                is_error=False,
                 content=[
                     TextContent(type='text', text='DAG listing retrieved successfully'),
                     TextContent(type='text', text=json.dumps(response, default=str)),
@@ -338,7 +338,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except ClientError as e:
@@ -346,7 +346,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except BotoCoreError as e:
@@ -354,7 +354,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
 
@@ -407,7 +407,7 @@ class AirflowTools:
             )
 
             return CallToolResult(
-                isError=False,
+                is_error=False,
                 content=[
                     TextContent(type='text', text=f'DAG details for: {dag_id}'),
                     TextContent(type='text', text=json.dumps(response, default=str)),
@@ -418,7 +418,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except ClientError as e:
@@ -426,7 +426,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except BotoCoreError as e:
@@ -434,7 +434,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
 
@@ -487,7 +487,7 @@ class AirflowTools:
             )
 
             return CallToolResult(
-                isError=False,
+                is_error=False,
                 content=[
                     TextContent(type='text', text='DAG source retrieved successfully'),
                     TextContent(type='text', text=json.dumps(response, default=str)),
@@ -498,7 +498,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except ClientError as e:
@@ -506,7 +506,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except BotoCoreError as e:
@@ -514,7 +514,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
 
@@ -616,7 +616,7 @@ class AirflowTools:
             )
 
             return CallToolResult(
-                isError=False,
+                is_error=False,
                 content=[
                     TextContent(type='text', text=f'DAG runs for: {dag_id}'),
                     TextContent(type='text', text=json.dumps(response, default=str)),
@@ -627,7 +627,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except ClientError as e:
@@ -635,7 +635,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except BotoCoreError as e:
@@ -643,7 +643,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
 
@@ -702,7 +702,7 @@ class AirflowTools:
             )
 
             return CallToolResult(
-                isError=False,
+                is_error=False,
                 content=[
                     TextContent(type='text', text=f'DAG run details for: {dag_id}/{dag_run_id}'),
                     TextContent(type='text', text=json.dumps(response, default=str)),
@@ -713,7 +713,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except ClientError as e:
@@ -721,7 +721,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except BotoCoreError as e:
@@ -729,7 +729,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
 
@@ -788,7 +788,7 @@ class AirflowTools:
             )
 
             return CallToolResult(
-                isError=False,
+                is_error=False,
                 content=[
                     TextContent(
                         type='text',
@@ -802,7 +802,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except ClientError as e:
@@ -810,7 +810,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except BotoCoreError as e:
@@ -818,7 +818,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
 
@@ -912,7 +912,7 @@ class AirflowTools:
                 header += f' (map_index={map_index})'
 
             return CallToolResult(
-                isError=False,
+                is_error=False,
                 content=[
                     TextContent(type='text', text=header),
                     TextContent(type='text', text=json.dumps(response, default=str)),
@@ -923,7 +923,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except ClientError as e:
@@ -931,7 +931,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except BotoCoreError as e:
@@ -939,7 +939,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
 
@@ -1027,7 +1027,7 @@ class AirflowTools:
             )
 
             return CallToolResult(
-                isError=False,
+                is_error=False,
                 content=[
                     TextContent(
                         type='text',
@@ -1041,7 +1041,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except ClientError as e:
@@ -1049,7 +1049,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except BotoCoreError as e:
@@ -1057,7 +1057,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
 
@@ -1171,7 +1171,7 @@ class AirflowTools:
                 )
 
             return CallToolResult(
-                isError=False,
+                is_error=False,
                 content=[
                     TextContent(type='text', text=header),
                     TextContent(type='text', text=json.dumps(response, default=str)),
@@ -1182,7 +1182,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except ClientError as e:
@@ -1226,7 +1226,7 @@ class AirflowTools:
                         )
 
                     return CallToolResult(
-                        isError=False,
+                        is_error=False,
                         content=[
                             TextContent(type='text', text=header),
                             TextContent(type='text', text=json.dumps(response, default=str)),
@@ -1241,7 +1241,7 @@ class AirflowTools:
                     logger.error(error_message)
                     await ctx.error(error_message)
                     return CallToolResult(
-                        isError=True,
+                        is_error=True,
                         content=[TextContent(type='text', text=error_message)],
                     )
 
@@ -1249,7 +1249,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except BotoCoreError as e:
@@ -1257,7 +1257,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
 
@@ -1320,7 +1320,7 @@ class AirflowTools:
             response = self._redact_connections(response)
 
             return CallToolResult(
-                isError=False,
+                is_error=False,
                 content=[
                     TextContent(
                         type='text',
@@ -1334,7 +1334,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except ClientError as e:
@@ -1342,7 +1342,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except BotoCoreError as e:
@@ -1350,7 +1350,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
 
@@ -1413,7 +1413,7 @@ class AirflowTools:
             response = self._redact_variables(response)
 
             return CallToolResult(
-                isError=False,
+                is_error=False,
                 content=[
                     TextContent(type='text', text='Variables retrieved successfully'),
                     TextContent(type='text', text=json.dumps(response, default=str)),
@@ -1424,7 +1424,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except ClientError as e:
@@ -1432,7 +1432,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except BotoCoreError as e:
@@ -1440,7 +1440,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
 
@@ -1485,7 +1485,7 @@ class AirflowTools:
             )
 
             return CallToolResult(
-                isError=False,
+                is_error=False,
                 content=[
                     TextContent(type='text', text='Import errors retrieved successfully'),
                     TextContent(type='text', text=json.dumps(response, default=str)),
@@ -1496,7 +1496,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except ClientError as e:
@@ -1504,7 +1504,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except BotoCoreError as e:
@@ -1512,7 +1512,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
 
@@ -1585,7 +1585,7 @@ class AirflowTools:
             )
 
             return CallToolResult(
-                isError=False,
+                is_error=False,
                 content=[
                     TextContent(type='text', text=f'DAG run triggered for: {dag_id}'),
                     TextContent(type='text', text=json.dumps(response, default=str)),
@@ -1596,7 +1596,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except ValueError as e:
@@ -1604,7 +1604,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except ClientError as e:
@@ -1612,7 +1612,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except BotoCoreError as e:
@@ -1620,7 +1620,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
 
@@ -1676,7 +1676,7 @@ class AirflowTools:
             )
 
             return CallToolResult(
-                isError=False,
+                is_error=False,
                 content=[
                     TextContent(type='text', text=f'DAG paused: {dag_id}'),
                     TextContent(type='text', text=json.dumps(response, default=str)),
@@ -1687,7 +1687,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except ValueError as e:
@@ -1695,7 +1695,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except ClientError as e:
@@ -1703,7 +1703,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except BotoCoreError as e:
@@ -1711,7 +1711,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
 
@@ -1767,7 +1767,7 @@ class AirflowTools:
             )
 
             return CallToolResult(
-                isError=False,
+                is_error=False,
                 content=[
                     TextContent(type='text', text=f'DAG unpaused: {dag_id}'),
                     TextContent(type='text', text=json.dumps(response, default=str)),
@@ -1778,7 +1778,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except ValueError as e:
@@ -1786,7 +1786,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except ClientError as e:
@@ -1794,7 +1794,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except BotoCoreError as e:
@@ -1802,7 +1802,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
 
@@ -1910,7 +1910,7 @@ class AirflowTools:
             is_dry_run = dry_run is not False
             action = 'Would clear' if is_dry_run else 'Cleared'
             return CallToolResult(
-                isError=False,
+                is_error=False,
                 content=[
                     TextContent(type='text', text=f'{action} task instances for DAG: {dag_id}'),
                     TextContent(type='text', text=json.dumps(response, default=str)),
@@ -1921,7 +1921,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except ValueError as e:
@@ -1929,7 +1929,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except ClientError as e:
@@ -1937,7 +1937,7 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )
         except BotoCoreError as e:
@@ -1945,6 +1945,6 @@ class AirflowTools:
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(
-                isError=True,
+                is_error=True,
                 content=[TextContent(type='text', text=error_message)],
             )

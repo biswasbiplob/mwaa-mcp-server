@@ -50,11 +50,11 @@ class TestMain:
 
     def test_create_server(self):
         """Test that create_server creates a FastMCP instance with correct parameters."""
-        with patch('mwaa_mcp_server.server.FastMCP') as mock_fastmcp:
+        with patch('mwaa_mcp_server.server.MCPServer') as mock_mcpserver:
             create_server()
 
-            mock_fastmcp.assert_called_once()
-            args, kwargs = mock_fastmcp.call_args
+            mock_mcpserver.assert_called_once()
+            args, kwargs = mock_mcpserver.call_args
             assert args[0] == 'mwaa-mcp-server'
             assert 'instructions' in kwargs
             assert 'dependencies' in kwargs

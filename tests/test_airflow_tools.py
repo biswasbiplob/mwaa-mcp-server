@@ -92,7 +92,7 @@ class TestListDags:
 
         result = await handler_readonly.list_dags(mock_ctx, environment_name='test-env')
 
-        assert not result.isError
+        assert not result.is_error
         data = json.loads(result.content[1].text)
         assert len(data['dags']) == 2
 
@@ -109,7 +109,7 @@ class TestListDags:
             mock_ctx, environment_name='test-env', limit=10, offset=5, paused=True
         )
 
-        assert not result.isError
+        assert not result.is_error
         call_kwargs = mock_client.invoke_rest_api.call_args[1]
         assert call_kwargs['QueryParameters'] == {
             'limit': '10',
@@ -129,7 +129,7 @@ class TestListDags:
 
         result = await handler_readonly.list_dags(mock_ctx, environment_name='test-env')
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS API error' in result.content[0].text
 
 
@@ -151,7 +151,7 @@ class TestGetDag:
             mock_ctx, environment_name='test-env', dag_id='my_dag'
         )
 
-        assert not result.isError
+        assert not result.is_error
         data = json.loads(result.content[1].text)
         assert data['dag_id'] == 'my_dag'
 
@@ -161,7 +161,7 @@ class TestGetDag:
             mock_ctx, environment_name='test-env', dag_id='../../../etc/passwd'
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'path traversal' in result.content[0].text
 
 
@@ -179,7 +179,7 @@ class TestGetDagSource:
             mock_ctx, environment_name='test-env', file_token='abc123'
         )
 
-        assert not result.isError
+        assert not result.is_error
 
     @pytest.mark.asyncio
     async def test_get_dag_source_path_traversal(self, handler_readonly, mock_ctx):
@@ -187,7 +187,7 @@ class TestGetDagSource:
             mock_ctx, environment_name='test-env', file_token='../bad'
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'path traversal' in result.content[0].text
 
 
@@ -208,7 +208,7 @@ class TestListDagRuns:
             mock_ctx, environment_name='test-env', dag_id='my_dag'
         )
 
-        assert not result.isError
+        assert not result.is_error
         data = json.loads(result.content[1].text)
         assert len(data['dag_runs']) == 1
 
@@ -230,7 +230,7 @@ class TestListDagRuns:
             state='failed',
         )
 
-        assert not result.isError
+        assert not result.is_error
         call_kwargs = mock_client.invoke_rest_api.call_args[1]
         assert call_kwargs['QueryParameters']['state'] == 'failed'
 
@@ -254,7 +254,7 @@ class TestListDagRuns:
             execution_date_lte='2026-02-21T00:00:00+00:00',
         )
 
-        assert not result.isError
+        assert not result.is_error
         call_kwargs = mock_client.invoke_rest_api.call_args[1]
         query_params = call_kwargs['QueryParameters']
         assert query_params['execution_date_gte'] == '2026-02-20T00:00:00+00:00'
@@ -279,7 +279,7 @@ class TestListDagRuns:
             order_by='-start_date',
         )
 
-        assert not result.isError
+        assert not result.is_error
         call_kwargs = mock_client.invoke_rest_api.call_args[1]
         assert call_kwargs['QueryParameters']['order_by'] == '-start_date'
 
@@ -305,7 +305,7 @@ class TestGetDagRun:
             dag_run_id='run-1',
         )
 
-        assert not result.isError
+        assert not result.is_error
         data = json.loads(result.content[1].text)
         assert data['dag_run_id'] == 'run-1'
 
@@ -333,7 +333,7 @@ class TestListTaskInstances:
             dag_run_id='run-1',
         )
 
-        assert not result.isError
+        assert not result.is_error
         data = json.loads(result.content[1].text)
         assert len(data['task_instances']) == 2
 
@@ -361,7 +361,7 @@ class TestGetTaskInstance:
             map_index=None,
         )
 
-        assert not result.isError
+        assert not result.is_error
         data = json.loads(result.content[1].text)
         assert data['task_id'] == 'my_task'
 
@@ -375,7 +375,7 @@ class TestGetTaskInstance:
             task_id='../../etc/passwd',
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'path traversal' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -402,7 +402,7 @@ class TestGetTaskInstance:
             map_index=3,
         )
 
-        assert not result.isError
+        assert not result.is_error
         # Verify path includes map_index
         call_kwargs = mock_client.invoke_rest_api.call_args[1]
         assert call_kwargs['Path'].endswith('/taskInstances/my_task/3')
@@ -432,7 +432,7 @@ class TestGetTaskInstance:
             map_index=None,
         )
 
-        assert not result.isError
+        assert not result.is_error
         # Verify path does NOT include map_index
         call_kwargs = mock_client.invoke_rest_api.call_args[1]
         assert call_kwargs['Path'].endswith('/taskInstances/my_task')
@@ -462,7 +462,7 @@ class TestGetTaskInstance:
             map_index=0,
         )
 
-        assert not result.isError
+        assert not result.is_error
         call_kwargs = mock_client.invoke_rest_api.call_args[1]
         assert call_kwargs['Path'].endswith('/taskInstances/my_task/0')
 
@@ -477,7 +477,7 @@ class TestGetTaskInstance:
             map_index=-1,
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'map_index' in result.content[0].text
         assert '>= 0' in result.content[0].text
 
@@ -511,7 +511,7 @@ class TestListMappedTaskInstances:
             offset=None,
         )
 
-        assert not result.isError
+        assert not result.is_error
         assert 'Mapped task instances for' in result.content[0].text
         data = json.loads(result.content[1].text)
         assert len(data['task_instances']) == 3
@@ -545,7 +545,7 @@ class TestListMappedTaskInstances:
             offset=10,
         )
 
-        assert not result.isError
+        assert not result.is_error
         call_kwargs = mock_client.invoke_rest_api.call_args[1]
         assert call_kwargs['QueryParameters'] == {
             'limit': '10',
@@ -562,7 +562,7 @@ class TestListMappedTaskInstances:
             task_id='../../etc/passwd',
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'path traversal' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -587,7 +587,7 @@ class TestListMappedTaskInstances:
             offset=None,
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -611,7 +611,7 @@ class TestListMappedTaskInstances:
             offset=None,
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS SDK error' in result.content[0].text
 
 
@@ -637,7 +637,7 @@ class TestGetTaskLogs:
             map_index=None,
         )
 
-        assert not result.isError
+        assert not result.is_error
         assert 'try 1' in result.content[0].text
 
         # Verify no query parameters passed (backwards compatible)
@@ -670,7 +670,7 @@ class TestGetTaskLogs:
             map_index=2,
         )
 
-        assert not result.isError
+        assert not result.is_error
         call_kwargs = mock_client.invoke_rest_api.call_args[1]
         assert call_kwargs['QueryParameters'] == {
             'full_content': 'false',
@@ -701,7 +701,7 @@ class TestGetTaskLogs:
             try_number=1,
         )
 
-        assert not result.isError
+        assert not result.is_error
         assert 'More logs available' in result.content[0].text
         assert 'continuation_token' in result.content[0].text
 
@@ -740,7 +740,7 @@ class TestGetTaskLogs:
             try_number=2,
         )
 
-        assert not result.isError
+        assert not result.is_error
         assert 'timed out' in result.content[0].text
         assert 'chunked response' in result.content[0].text
         # Verify retry was called with full_content=false
@@ -786,7 +786,7 @@ class TestGetTaskLogs:
             try_number=1,
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'Both full and chunked requests failed' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -817,7 +817,7 @@ class TestGetTaskLogs:
             full_content=False,
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS API error' in result.content[0].text
         # Should only have been called once (no retry)
         assert mock_client.invoke_rest_api.call_count == 1
@@ -845,7 +845,7 @@ class TestListConnections:
 
         result = await handler_readonly.list_connections(mock_ctx, environment_name='test-env')
 
-        assert not result.isError
+        assert not result.is_error
         data = json.loads(result.content[1].text)
         assert data['connections'][0]['password'] == '***REDACTED***'
         assert data['connections'][0]['extra'] == '***REDACTED***'
@@ -867,7 +867,7 @@ class TestListVariables:
 
         result = await handler_readonly.list_variables(mock_ctx, environment_name='test-env')
 
-        assert not result.isError
+        assert not result.is_error
         data = json.loads(result.content[1].text)
         assert len(data['variables']) == 1
 
@@ -892,7 +892,7 @@ class TestGetImportErrors:
 
         result = await handler_readonly.get_import_errors(mock_ctx, environment_name='test-env')
 
-        assert not result.isError
+        assert not result.is_error
         data = json.loads(result.content[1].text)
         assert len(data['import_errors']) == 1
 
@@ -904,7 +904,7 @@ class TestTriggerDagRun:
             mock_ctx, environment_name='test-env', dag_id='my_dag'
         )
 
-        assert result.isError
+        assert result.is_error
         assert '--allow-write' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -923,7 +923,7 @@ class TestTriggerDagRun:
             mock_ctx, environment_name='test-env', dag_id='my_dag'
         )
 
-        assert not result.isError
+        assert not result.is_error
         assert 'triggered' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -943,7 +943,7 @@ class TestTriggerDagRun:
             logical_date='2024-01-01T00:00:00+00:00',
         )
 
-        assert not result.isError
+        assert not result.is_error
         call_kwargs = mock_client.invoke_rest_api.call_args[1]
         assert call_kwargs['Body'] == {
             'conf': {'key': 'value'},
@@ -958,7 +958,7 @@ class TestPauseDag:
             mock_ctx, environment_name='test-env', dag_id='my_dag'
         )
 
-        assert result.isError
+        assert result.is_error
         assert '--allow-write' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -974,7 +974,7 @@ class TestPauseDag:
             mock_ctx, environment_name='test-env', dag_id='my_dag'
         )
 
-        assert not result.isError
+        assert not result.is_error
         call_kwargs = mock_client.invoke_rest_api.call_args[1]
         assert call_kwargs['Body'] == {'is_paused': True}
         assert call_kwargs['Method'] == 'PATCH'
@@ -987,7 +987,7 @@ class TestUnpauseDag:
             mock_ctx, environment_name='test-env', dag_id='my_dag'
         )
 
-        assert result.isError
+        assert result.is_error
         assert '--allow-write' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -1003,7 +1003,7 @@ class TestUnpauseDag:
             mock_ctx, environment_name='test-env', dag_id='my_dag'
         )
 
-        assert not result.isError
+        assert not result.is_error
         call_kwargs = mock_client.invoke_rest_api.call_args[1]
         assert call_kwargs['Body'] == {'is_paused': False}
         assert call_kwargs['Method'] == 'PATCH'
@@ -1021,7 +1021,7 @@ class TestListDagsBotoCoreError:
 
         result = await handler_readonly.list_dags(mock_ctx, environment_name='test-env')
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS SDK error' in result.content[0].text
 
 
@@ -1040,7 +1040,7 @@ class TestGetDagErrors:
             mock_ctx, environment_name='test-env', dag_id='my_dag'
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -1056,7 +1056,7 @@ class TestGetDagErrors:
             mock_ctx, environment_name='test-env', dag_id='my_dag'
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS SDK error' in result.content[0].text
 
 
@@ -1075,7 +1075,7 @@ class TestGetDagSourceErrors:
             mock_ctx, environment_name='test-env', file_token='abc123'
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -1093,7 +1093,7 @@ class TestGetDagSourceErrors:
             mock_ctx, environment_name='test-env', file_token='abc123'
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS SDK error' in result.content[0].text
 
 
@@ -1112,7 +1112,7 @@ class TestListDagRunsErrors:
             mock_ctx, environment_name='test-env', dag_id='my_dag'
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -1128,7 +1128,7 @@ class TestListDagRunsErrors:
             mock_ctx, environment_name='test-env', dag_id='my_dag'
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS SDK error' in result.content[0].text
 
 
@@ -1147,7 +1147,7 @@ class TestGetDagRunErrors:
             mock_ctx, environment_name='test-env', dag_id='my_dag', dag_run_id='run-1'
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -1163,7 +1163,7 @@ class TestGetDagRunErrors:
             mock_ctx, environment_name='test-env', dag_id='my_dag', dag_run_id='run-1'
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS SDK error' in result.content[0].text
 
 
@@ -1184,7 +1184,7 @@ class TestListTaskInstancesErrors:
             mock_ctx, environment_name='test-env', dag_id='my_dag', dag_run_id='run-1'
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -1202,7 +1202,7 @@ class TestListTaskInstancesErrors:
             mock_ctx, environment_name='test-env', dag_id='my_dag', dag_run_id='run-1'
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS SDK error' in result.content[0].text
 
 
@@ -1228,7 +1228,7 @@ class TestGetTaskInstanceErrors:
             map_index=None,
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -1251,7 +1251,7 @@ class TestGetTaskInstanceErrors:
             map_index=None,
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS SDK error' in result.content[0].text
 
 
@@ -1275,7 +1275,7 @@ class TestGetTaskLogsErrors:
             try_number=1,
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -1296,7 +1296,7 @@ class TestGetTaskLogsErrors:
             try_number=1,
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS SDK error' in result.content[0].text
 
 
@@ -1315,7 +1315,7 @@ class TestListConnectionsErrors:
 
         result = await handler_readonly.list_connections(mock_ctx, environment_name='test-env')
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -1331,7 +1331,7 @@ class TestListConnectionsErrors:
 
         result = await handler_readonly.list_connections(mock_ctx, environment_name='test-env')
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS SDK error' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -1347,7 +1347,7 @@ class TestListConnectionsErrors:
             mock_ctx, environment_name='test-env', limit=10, offset=5
         )
 
-        assert not result.isError
+        assert not result.is_error
         call_kwargs = mock_client.invoke_rest_api.call_args[1]
         assert call_kwargs['QueryParameters'] == {'limit': '10', 'offset': '5'}
 
@@ -1365,7 +1365,7 @@ class TestListVariablesErrors:
 
         result = await handler_readonly.list_variables(mock_ctx, environment_name='test-env')
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -1381,7 +1381,7 @@ class TestListVariablesErrors:
 
         result = await handler_readonly.list_variables(mock_ctx, environment_name='test-env')
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS SDK error' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -1397,7 +1397,7 @@ class TestListVariablesErrors:
             mock_ctx, environment_name='test-env', limit=10, offset=5
         )
 
-        assert not result.isError
+        assert not result.is_error
         call_kwargs = mock_client.invoke_rest_api.call_args[1]
         assert call_kwargs['QueryParameters'] == {'limit': '10', 'offset': '5'}
 
@@ -1417,7 +1417,7 @@ class TestGetImportErrorsErrors:
 
         result = await handler_readonly.get_import_errors(mock_ctx, environment_name='test-env')
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -1433,7 +1433,7 @@ class TestGetImportErrorsErrors:
 
         result = await handler_readonly.get_import_errors(mock_ctx, environment_name='test-env')
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS SDK error' in result.content[0].text
 
 
@@ -1452,7 +1452,7 @@ class TestTriggerDagRunErrors:
             mock_ctx, environment_name='test-env', dag_id='my_dag'
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -1470,7 +1470,7 @@ class TestTriggerDagRunErrors:
             mock_ctx, environment_name='test-env', dag_id='my_dag'
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS SDK error' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -1479,7 +1479,7 @@ class TestTriggerDagRunErrors:
             mock_ctx, environment_name='test-env', dag_id='../etc/passwd'
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'path traversal' in result.content[0].text
 
 
@@ -1498,7 +1498,7 @@ class TestPauseDagErrors:
             mock_ctx, environment_name='test-env', dag_id='my_dag'
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -1514,7 +1514,7 @@ class TestPauseDagErrors:
             mock_ctx, environment_name='test-env', dag_id='my_dag'
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS SDK error' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -1523,7 +1523,7 @@ class TestPauseDagErrors:
             mock_ctx, environment_name='test-env', dag_id='../etc/passwd'
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'path traversal' in result.content[0].text
 
 
@@ -1542,7 +1542,7 @@ class TestUnpauseDagErrors:
             mock_ctx, environment_name='test-env', dag_id='my_dag'
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -1558,7 +1558,7 @@ class TestUnpauseDagErrors:
             mock_ctx, environment_name='test-env', dag_id='my_dag'
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS SDK error' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -1567,7 +1567,7 @@ class TestUnpauseDagErrors:
             mock_ctx, environment_name='test-env', dag_id='../etc/passwd'
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'path traversal' in result.content[0].text
 
 
@@ -1810,7 +1810,7 @@ class TestRestApiClientExceptionEnrichment:
             mock_ctx, environment_name='test-env', dag_id='nonexistent_dag'
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'HTTP 404' in result.content[0].text
         assert 'DAG not found' in result.content[0].text
 
@@ -1822,7 +1822,7 @@ class TestClearTaskInstances:
             mock_ctx, environment_name='test-env', dag_id='my_dag'
         )
 
-        assert result.isError
+        assert result.is_error
         assert '--allow-write' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -1847,7 +1847,7 @@ class TestClearTaskInstances:
             include_upstream=False,
         )
 
-        assert not result.isError
+        assert not result.is_error
         assert 'Would clear' in result.content[0].text
         call_kwargs = mock_client.invoke_rest_api.call_args[1]
         assert call_kwargs['Method'] == 'POST'
@@ -1870,7 +1870,7 @@ class TestClearTaskInstances:
             mock_ctx, environment_name='test-env', dag_id='my_dag', dry_run=False
         )
 
-        assert not result.isError
+        assert not result.is_error
         assert 'Cleared' in result.content[0].text
         assert 'Would clear' not in result.content[0].text
         call_kwargs = mock_client.invoke_rest_api.call_args[1]
@@ -1898,7 +1898,7 @@ class TestClearTaskInstances:
             include_upstream=True,
         )
 
-        assert not result.isError
+        assert not result.is_error
         call_kwargs = mock_client.invoke_rest_api.call_args[1]
         body = call_kwargs['Body']
         assert body['dag_run_id'] == 'run-123'
@@ -1915,7 +1915,7 @@ class TestClearTaskInstances:
             mock_ctx, environment_name='test-env', dag_id='../etc/passwd'
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'path traversal' in result.content[0].text
 
 
@@ -1934,7 +1934,7 @@ class TestClearTaskInstancesErrors:
             mock_ctx, environment_name='test-env', dag_id='my_dag'
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS API error' in result.content[0].text
 
     @pytest.mark.asyncio
@@ -1950,5 +1950,5 @@ class TestClearTaskInstancesErrors:
             mock_ctx, environment_name='test-env', dag_id='my_dag'
         )
 
-        assert result.isError
+        assert result.is_error
         assert 'AWS SDK error' in result.content[0].text

@@ -107,3 +107,19 @@ async def test_total_tool_count():
     AirflowTools(mock_mcp)
 
     assert mock_mcp.tool.call_count == 21
+
+
+@pytest.mark.asyncio
+async def test_registration_against_real_server():
+    """Register all tools on a real MCPServer so schema building is exercised, not mocked."""
+    from mwaa_mcp_server.server import create_server
+
+    server = create_server()
+    EnvironmentTools(server, allow_write=True)
+    AirflowTools(server, allow_write=True)
+
+    tools = await server.list_tools()
+    assert len(tools) == 21
+    tool_names = {tool.name for tool in tools}
+    assert 'list-mapped-task-instances' in tool_names
+    assert 'get-task-logs' in tool_names
