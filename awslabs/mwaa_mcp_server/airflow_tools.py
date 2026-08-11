@@ -31,6 +31,7 @@ from awslabs.mwaa_mcp_server.consts import (
     ENVIRONMENT_NAME_PATTERN,
     IMPORT_ERRORS_PATH,
     LIST_MAPPED_TASK_INSTANCES_PATH,
+    MAPPED_TASK_INSTANCE_PATH,
     TASK_INSTANCE_PATH,
     TASK_INSTANCES_PATH,
     TASK_LOGS_PATH,
@@ -854,6 +855,11 @@ class AirflowTools:
             ...,
             description='The task ID.',
         ),
+        map_index: Optional[int] = Field(
+            default=None,
+            description='For mapped task instances, the map index to get details for. '
+            'Use list-mapped-task-instances to discover available map indices.',
+        ),
         region: Optional[str] = Field(
             default=None,
             description='AWS region override.',
@@ -868,12 +874,16 @@ class AirflowTools:
         Returns detailed information about a task instance including its state,
         start/end dates, duration, try number, and execution details.
 
+        For dynamically mapped tasks, pass map_index to get a specific mapped instance.
+        Without map_index, returns the parent task summary.
+
         Args:
             ctx: The MCP context.
             environment_name: Name of the MWAA environment.
             dag_id: The DAG identifier.
             dag_run_id: The DAG run identifier.
             task_id: The task identifier.
+            map_index: Map index for mapped task instances (must be >= 0).
             region: AWS region override.
             profile_name: AWS CLI profile name override.
 
@@ -885,7 +895,23 @@ class AirflowTools:
             self._sanitize_path_param(dag_id, 'dag_id')
             self._sanitize_path_param(dag_run_id, 'dag_run_id')
             self._sanitize_path_param(task_id, 'task_id')
-            path = TASK_INSTANCE_PATH.format(dag_id=dag_id, dag_run_id=dag_run_id, task_id=task_id)
+
+            if map_index is not None:
+                if map_index < 0:
+                    raise ValueError(
+                        f'Invalid map_index: must be >= 0, got {map_index}. '
+                        'Use list-mapped-task-instances to discover available map indices.'
+                    )
+                path = MAPPED_TASK_INSTANCE_PATH.format(
+                    dag_id=dag_id,
+                    dag_run_id=dag_run_id,
+                    task_id=task_id,
+                    map_index=map_index,
+                )
+            else:
+                path = TASK_INSTANCE_PATH.format(
+                    dag_id=dag_id, dag_run_id=dag_run_id, task_id=task_id
+                )
 
             response = await self._invoke_airflow_api(
                 environment_name=environment_name,
@@ -895,13 +921,14 @@ class AirflowTools:
                 profile_name=profile_name,
             )
 
+            header = f'Task instance details for: {dag_id}/{dag_run_id}/{task_id}'
+            if map_index is not None:
+                header += f' (map_index={map_index})'
+
             return CallToolResult(
                 isError=False,
                 content=[
-                    TextContent(
-                        type='text',
-                        text=f'Task instance details for: {dag_id}/{dag_run_id}/{task_id}',
-                    ),
+                    TextContent(type='text', text=header),
                     TextContent(type='text', text=json.dumps(response, default=str)),
                 ],
             )

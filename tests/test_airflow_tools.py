@@ -371,6 +371,7 @@ class TestGetTaskInstance:
             dag_id='my_dag',
             dag_run_id='run-1',
             task_id='my_task',
+            map_index=None,
         )
 
         assert not result.isError
@@ -389,6 +390,109 @@ class TestGetTaskInstance:
 
         assert result.isError
         assert 'path traversal' in result.content[0].text
+
+    @pytest.mark.asyncio
+    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    async def test_get_task_instance_with_map_index(
+        self, mock_get_client, handler_readonly, mock_ctx
+    ):
+        mock_client = MagicMock()
+        mock_client.invoke_rest_api.return_value = {
+            'RestApiResponse': {
+                'task_id': 'my_task',
+                'map_index': 3,
+                'state': 'success',
+            },
+        }
+        mock_get_client.return_value = mock_client
+
+        result = await handler_readonly.get_task_instance(
+            mock_ctx,
+            environment_name='test-env',
+            dag_id='my_dag',
+            dag_run_id='run-1',
+            task_id='my_task',
+            map_index=3,
+        )
+
+        assert not result.isError
+        # Verify path includes map_index
+        call_kwargs = mock_client.invoke_rest_api.call_args[1]
+        assert call_kwargs['Path'].endswith('/taskInstances/my_task/3')
+        # Verify header includes map_index
+        assert 'map_index=3' in result.content[0].text
+
+    @pytest.mark.asyncio
+    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    async def test_get_task_instance_without_map_index_unchanged(
+        self, mock_get_client, handler_readonly, mock_ctx
+    ):
+        mock_client = MagicMock()
+        mock_client.invoke_rest_api.return_value = {
+            'RestApiResponse': {
+                'task_id': 'my_task',
+                'state': 'success',
+            },
+        }
+        mock_get_client.return_value = mock_client
+
+        result = await handler_readonly.get_task_instance(
+            mock_ctx,
+            environment_name='test-env',
+            dag_id='my_dag',
+            dag_run_id='run-1',
+            task_id='my_task',
+            map_index=None,
+        )
+
+        assert not result.isError
+        # Verify path does NOT include map_index
+        call_kwargs = mock_client.invoke_rest_api.call_args[1]
+        assert call_kwargs['Path'].endswith('/taskInstances/my_task')
+        assert 'map_index' not in result.content[0].text
+
+    @pytest.mark.asyncio
+    @patch('awslabs.mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    async def test_get_task_instance_map_index_zero(
+        self, mock_get_client, handler_readonly, mock_ctx
+    ):
+        mock_client = MagicMock()
+        mock_client.invoke_rest_api.return_value = {
+            'RestApiResponse': {
+                'task_id': 'my_task',
+                'map_index': 0,
+                'state': 'failed',
+            },
+        }
+        mock_get_client.return_value = mock_client
+
+        result = await handler_readonly.get_task_instance(
+            mock_ctx,
+            environment_name='test-env',
+            dag_id='my_dag',
+            dag_run_id='run-1',
+            task_id='my_task',
+            map_index=0,
+        )
+
+        assert not result.isError
+        call_kwargs = mock_client.invoke_rest_api.call_args[1]
+        assert call_kwargs['Path'].endswith('/taskInstances/my_task/0')
+
+    @pytest.mark.asyncio
+    async def test_get_task_instance_negative_map_index(self, handler_readonly, mock_ctx):
+        result = await handler_readonly.get_task_instance(
+            mock_ctx,
+            environment_name='test-env',
+            dag_id='my_dag',
+            dag_run_id='run-1',
+            task_id='my_task',
+            map_index=-1,
+        )
+
+        assert result.isError
+        assert 'map_index' in result.content[0].text
+        assert '>= 0' in result.content[0].text
 
 
 class TestListMappedTaskInstances:
@@ -1134,6 +1238,7 @@ class TestGetTaskInstanceErrors:
             dag_id='my_dag',
             dag_run_id='run-1',
             task_id='my_task',
+            map_index=None,
         )
 
         assert result.isError
@@ -1156,6 +1261,7 @@ class TestGetTaskInstanceErrors:
             dag_id='my_dag',
             dag_run_id='run-1',
             task_id='my_task',
+            map_index=None,
         )
 
         assert result.isError
