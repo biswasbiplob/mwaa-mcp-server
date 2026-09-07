@@ -124,6 +124,7 @@ For write access:
 | `get-task-logs` | Get logs for a task instance try (supports pagination for large logs) | Read |
 | `list-connections` | List Airflow connections (passwords redacted) | Read |
 | `list-variables` | List Airflow variables (sensitive values redacted) | Read |
+| `list-pools` | List Airflow pools with slot usage (diagnoses tasks stuck in queued) | Read |
 | `get-import-errors` | Get DAG import/parsing errors | Read |
 | `trigger-dag-run` | Trigger a new DAG run | Write |
 | `pause-dag` | Pause a DAG | Write |

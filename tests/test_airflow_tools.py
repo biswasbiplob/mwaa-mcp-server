@@ -835,6 +835,55 @@ class TestListVariables:
         assert len(data['variables']) == 1
 
 
+class TestListPools:
+    @pytest.mark.asyncio
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    async def test_list_pools_success(self, mock_get_client, handler_readonly, mock_ctx):
+        mock_client = make_mock_client()
+        mock_client.invoke_rest_api.return_value = {
+            'RestApiResponse': {
+                'pools': [
+                    {
+                        'name': 'dbt_producer_build',
+                        'slots': 1,
+                        'occupied_slots': 1,
+                        'queued_slots': 3,
+                        'open_slots': 0,
+                    }
+                ],
+                'total_entries': 1,
+            },
+        }
+        mock_get_client.return_value = mock_client
+
+        result = await handler_readonly.list_pools(mock_ctx, environment_name='test-env')
+
+        assert not result.is_error
+        data = json.loads(result.content[1].text)
+        assert data['pools'][0]['queued_slots'] == 3
+
+    @pytest.mark.asyncio
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    async def test_list_pools_always_sends_limit(
+        self, mock_get_client, handler_readonly, mock_ctx
+    ):
+        mock_client = make_mock_client(airflow_version='3.2.1')
+        mock_client.invoke_rest_api.return_value = {
+            'RestApiResponse': {'pools': [], 'total_entries': 0},
+        }
+        mock_get_client.return_value = mock_client
+
+        # FastMCP passes limit=None when the caller omits it.
+        result = await handler_readonly.list_pools(
+            mock_ctx, environment_name='test-env', limit=None, offset=None
+        )
+
+        assert not result.is_error
+        call_kwargs = mock_client.invoke_rest_api.call_args[1]
+        assert call_kwargs['Path'] == '/pools'
+        assert call_kwargs['QueryParameters'] == {'limit': '100'}
+
+
 class TestGetImportErrors:
     @pytest.mark.asyncio
     @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
@@ -1357,6 +1406,40 @@ class TestListVariablesErrors:
         mock_get_client.return_value = mock_client
 
         result = await handler_readonly.list_variables(
+            mock_ctx, environment_name='test-env', limit=10, offset=5
+        )
+
+        assert not result.is_error
+        call_kwargs = mock_client.invoke_rest_api.call_args[1]
+        assert call_kwargs['QueryParameters'] == {'limit': '10', 'offset': '5'}
+
+
+class TestListPoolsErrors:
+    @pytest.mark.asyncio
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    async def test_list_pools_client_error(self, mock_get_client, handler_readonly, mock_ctx):
+        mock_client = make_mock_client()
+        mock_client.invoke_rest_api.side_effect = ClientError(
+            {'Error': {'Code': 'AccessDeniedException', 'Message': 'Denied'}},
+            'InvokeRestApi',
+        )
+        mock_get_client.return_value = mock_client
+
+        result = await handler_readonly.list_pools(mock_ctx, environment_name='test-env')
+
+        assert result.is_error
+        assert 'AWS API error' in result.content[0].text
+
+    @pytest.mark.asyncio
+    @patch('mwaa_mcp_server.airflow_tools.get_mwaa_client')
+    async def test_list_pools_with_params(self, mock_get_client, handler_readonly, mock_ctx):
+        mock_client = make_mock_client()
+        mock_client.invoke_rest_api.return_value = {
+            'RestApiResponse': {'pools': [], 'total_entries': 0},
+        }
+        mock_get_client.return_value = mock_client
+
+        result = await handler_readonly.list_pools(
             mock_ctx, environment_name='test-env', limit=10, offset=5
         )
 
