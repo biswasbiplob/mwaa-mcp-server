@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.3.0] - 2026-09-07
+
+### Added
+
+- `list-pools` tool: lists Airflow pools with their total, occupied, queued
+  and open slots, to diagnose tasks that stay queued for want of a free slot
+- The tool always sends a `limit` query parameter (default 100). Airflow
+  3.2.1 answers `GET /pools` with HTTP 500 unless `limit` is set
+
 ## [0.2.0] - 2026-08-11
 
 ### Added
