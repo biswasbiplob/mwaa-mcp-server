@@ -60,7 +60,7 @@ async def test_airflow_tools_registration():
     mock_mcp = MagicMock()
     AirflowTools(mock_mcp)
 
-    assert mock_mcp.tool.call_count == 16
+    assert mock_mcp.tool.call_count == 17
 
     call_args_list = mock_mcp.tool.call_args_list
     tool_names = [call_args[1]['name'] for call_args in call_args_list]
@@ -76,6 +76,7 @@ async def test_airflow_tools_registration():
     assert 'get-task-logs' in tool_names
     assert 'list-connections' in tool_names
     assert 'list-variables' in tool_names
+    assert 'list-pools' in tool_names
     assert 'get-import-errors' in tool_names
     assert 'trigger-dag-run' in tool_names
     assert 'pause-dag' in tool_names
@@ -88,7 +89,7 @@ async def test_airflow_tools_registration_with_write():
     mock_mcp = MagicMock()
     AirflowTools(mock_mcp, allow_write=True)
 
-    assert mock_mcp.tool.call_count == 16
+    assert mock_mcp.tool.call_count == 17
 
     call_args_list = mock_mcp.tool.call_args_list
     tool_names = [call_args[1]['name'] for call_args in call_args_list]
@@ -106,7 +107,7 @@ async def test_total_tool_count():
     EnvironmentTools(mock_mcp)
     AirflowTools(mock_mcp)
 
-    assert mock_mcp.tool.call_count == 21
+    assert mock_mcp.tool.call_count == 22
 
 
 @pytest.mark.asyncio
@@ -119,7 +120,7 @@ async def test_registration_against_real_server():
     AirflowTools(server, allow_write=True)
 
     tools = await server.list_tools()
-    assert len(tools) == 21
+    assert len(tools) == 22
     tool_names = {tool.name for tool in tools}
     assert 'list-mapped-task-instances' in tool_names
     assert 'get-task-logs' in tool_names

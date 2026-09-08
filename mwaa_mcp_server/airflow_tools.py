@@ -18,11 +18,13 @@ from mwaa_mcp_server.consts import (
     DAG_SOURCE_PATH,
     DAG_SOURCE_PATH_V3,
     DAGS_PATH,
+    DEFAULT_POOLS_LIMIT,
     ENV_MWAA_ENVIRONMENT,
     ENVIRONMENT_NAME_PATTERN,
     IMPORT_ERRORS_PATH,
     LIST_MAPPED_TASK_INSTANCES_PATH,
     MAPPED_TASK_INSTANCE_PATH,
+    POOLS_PATH,
     TASK_INSTANCE_PATH,
     TASK_INSTANCES_PATH,
     TASK_LOGS_PATH,
@@ -63,6 +65,7 @@ class AirflowTools:
         self.mcp.tool(name='get-task-logs')(self.get_task_logs)
         self.mcp.tool(name='list-connections')(self.list_connections)
         self.mcp.tool(name='list-variables')(self.list_variables)
+        self.mcp.tool(name='list-pools')(self.list_pools)
         self.mcp.tool(name='get-import-errors')(self.get_import_errors)
 
         # Write tools
@@ -1504,6 +1507,96 @@ class AirflowTools:
             )
         except BotoCoreError as e:
             error_message = f'AWS SDK error listing variables: {e}'
+            logger.error(error_message)
+            await ctx.error(error_message)
+            return CallToolResult(
+                is_error=True,
+                content=[TextContent(type='text', text=error_message)],
+            )
+
+    async def list_pools(
+        self,
+        ctx: Context,
+        environment_name: Optional[str] = Field(
+            default=None,
+            description='Name of the MWAA environment. If omitted and only one environment exists, it is used automatically.',
+        ),
+        limit: Optional[int] = Field(
+            default=None,
+            description='Maximum number of pools to return (default 100).',
+        ),
+        offset: Optional[int] = Field(
+            default=None,
+            description='Number of pools to skip for pagination.',
+        ),
+        region: Optional[str] = Field(
+            default=None,
+            description='AWS region override.',
+        ),
+        profile_name: Optional[str] = Field(
+            default=None,
+            description='AWS CLI profile name override.',
+        ),
+    ) -> CallToolResult:
+        """List Airflow pools in an MWAA environment.
+
+        Returns each pool with its total, occupied, queued and open slots. Use this
+        to explain tasks that stay queued because a pool has no free slot.
+
+        Args:
+            ctx: The MCP context.
+            environment_name: Name of the MWAA environment.
+            limit: Maximum number of results.
+            offset: Pagination offset.
+            region: AWS region override.
+            profile_name: AWS CLI profile name override.
+
+        Returns:
+            CallToolResult with the list of pools.
+        """
+        try:
+            environment_name = self._resolve_environment(environment_name, region, profile_name)
+            # Airflow 3.2.1 answers GET /pools with HTTP 500 unless limit is set.
+            query_params: dict = {
+                'limit': str(limit if limit is not None else DEFAULT_POOLS_LIMIT)
+            }
+            if offset is not None:
+                query_params['offset'] = str(offset)
+
+            response = await self._invoke_airflow_api(
+                environment_name=environment_name,
+                method='GET',
+                path=POOLS_PATH,
+                query_parameters=query_params,
+                region=region,
+                profile_name=profile_name,
+            )
+
+            return CallToolResult(
+                is_error=False,
+                content=[
+                    TextContent(type='text', text='Pools retrieved successfully'),
+                    TextContent(type='text', text=json.dumps(response, default=str)),
+                ],
+            )
+        except (ValueError, PermissionError) as e:
+            error_message = str(e)
+            logger.error(error_message)
+            await ctx.error(error_message)
+            return CallToolResult(
+                is_error=True,
+                content=[TextContent(type='text', text=error_message)],
+            )
+        except ClientError as e:
+            error_message = f'AWS API error listing pools: {e}'
+            logger.error(error_message)
+            await ctx.error(error_message)
+            return CallToolResult(
+                is_error=True,
+                content=[TextContent(type='text', text=error_message)],
+            )
+        except BotoCoreError as e:
+            error_message = f'AWS SDK error listing pools: {e}'
             logger.error(error_message)
             await ctx.error(error_message)
             return CallToolResult(

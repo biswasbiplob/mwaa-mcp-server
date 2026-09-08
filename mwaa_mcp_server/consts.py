@@ -8,6 +8,7 @@ ENV_MWAA_ENVIRONMENT = 'MWAA_ENVIRONMENT'
 
 # Default values
 DEFAULT_REGION = 'us-east-1'
+DEFAULT_POOLS_LIMIT = 100
 
 # Environment name validation pattern (1-80 chars, starts with letter)
 ENVIRONMENT_NAME_PATTERN = r'^[a-zA-Z][0-9a-zA-Z\-_]{0,79}$'
@@ -42,6 +43,7 @@ CLEAR_TASK_INSTANCES_PATH = '/dags/{dag_id}/clearTaskInstances'
 CONNECTIONS_PATH = '/connections'
 VARIABLES_PATH = '/variables'
 IMPORT_ERRORS_PATH = '/importErrors'
+POOLS_PATH = '/pools'
 
 # Sensitive fields to redact from connection responses
 CONNECTION_SENSITIVE_FIELDS = ('password', 'extra')
